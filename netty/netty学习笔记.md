@@ -6,7 +6,7 @@ jdk 版本：1.7
 
 
 
-
+​    
 
 # 1. Hello World
 
@@ -148,7 +148,7 @@ public class HelloClientHandler extends SimpleChannelInboundHandler<Object> {
 
 
 
-
+​    
 
 # 2. Channel
 
@@ -164,7 +164,7 @@ public class HelloClientHandler extends SimpleChannelInboundHandler<Object> {
 
 
 
-
+​    
 
 # 3. ByteBuf
 
@@ -181,7 +181,7 @@ ByteBuf 维护了两个不同的索引，一个用于读取，一个用于写入
 
 
 
-
+​    
 
 # 4. ChannelHandler
 
@@ -239,7 +239,7 @@ ChannelHandler 分为 ChannelInboundHandler 和 ChannelOutboundHandler（子接�
 
 （ **`ReferenceCountUtil.retain()`**：一旦消息被编码或者解码，它就会被 `ReferenceCountUtil.release()` 调用而自动释放。如果需要保留引用以便稍后使用，那么可以调用 ReferenceCountUtil.retain() 方法。它将会增加该引用计数，从而防止该消息被释放。）
 
-
+​    
 
 # 5. ChannelPipeline
 
@@ -344,7 +344,7 @@ public class OutboundExceptionHandler extends ChannelOutboundHandlerAdapter {
 
 
 
-
+​    
 
 # 6. EventLoop 与线程模型
 
@@ -412,6 +412,8 @@ NioEventLoop 继承于 `SingleThreadEventLoop` ，而它又继承于 `SingleThre
   与 ServerChannel 相关联的 EventLoopGroup 将分配一个负责为传入连接请求创建 Channel 的 EventLoop。一旦连接被接受，第二个 EventLoopGroup 就会给它的 Channel 分配一个 EventLoop。
 
 也就是说，服务器致力于使用一个父 Channel 来接受来自客户端的连接，并创建子Channel 以用于它们之间的通信；而客户端将最可能只需要一个单独的、没有父 Channel 的 Channel 来用于所有的网络交互。
+
+​    
 
 
 
@@ -561,7 +563,7 @@ public class MyProtocolDecoder extends ByteToMessageDecoder {
 
 
 
-
+​    
 
 # 8. Netty 优化
 
