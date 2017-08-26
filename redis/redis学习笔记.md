@@ -257,7 +257,7 @@ try {
     - volatile-ttl：只从设置失效（expireset）的 key 中，选出存活时间（TTL）最短的 key 进行删除，用以保存新数据。
 
 
-  - redis 4.0 新加了**memory命令**，可以查**看**某个 **可以** 占用的内存大小：`memory usage key`
+  - redis 4.0 新加了 **memory** 命令，可以查看某个可以占用的内存大小：`memory usage key`
 
 - 使用 **slowlog** 慢日志查出引发延迟的命令：
 
