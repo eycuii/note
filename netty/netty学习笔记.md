@@ -407,7 +407,7 @@ NioEventLoop 继承于 `SingleThreadEventLoop` ，而它又继承于 `SingleThre
 
   ​
 
-  ![具有两个EventLoopGroup的服务端](..\img\netty-具有两个EventLoopGroup的服务端.png)
+  ![具有两个EventLoopGroup的服务端](../img/netty-具有两个EventLoopGroup的服务端.png)
 
   与 ServerChannel 相关联的 EventLoopGroup 将分配一个负责为传入连接请求创建 Channel 的 EventLoop。一旦连接被接受，第二个 EventLoopGroup 就会给它的 Channel 分配一个 EventLoop。
 
