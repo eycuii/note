@@ -263,7 +263,7 @@ ChannelPipeline 中 ChannelHandler 的执行顺序由它们被添加时的顺序
 
 数据出站（即正在被写的数据）也一样。将从第一个添加的 ChannelOutboundHandler 开始执行，直到到达链的头部为止。在这之后，出站数据将会到达网络传输层，即 Socket ，并将触发一个写操作。
 
-![img](..\img\netty-ChannelPipeline与ChannelHandler.png)
+![img](../img/netty-ChannelPipeline与ChannelHandler.png)
 
 
 
@@ -356,7 +356,7 @@ Netty 的 EventLoopGroup 扩展了 Java 的 `ScheduledExecutorService` ，一个
 
 ### EventLoop 、EventLoopGroup 的层次结构
 
-![EventLoop的层次结构](..\img\netty-EventLoop的层次结构.png)
+![EventLoop的层次结构](../img/netty-EventLoop.png)
 
 
 
