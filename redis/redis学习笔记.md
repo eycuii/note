@@ -39,7 +39,7 @@ set name abc
 get name
 ```
 
-
+​    
 
 
 
@@ -72,7 +72,7 @@ get name
 可参考 http://doc.redisfans.com/
 附：redis 中可以对每个 key 设置过期时间（`expires key 秒数`），如果超过该过期时间会被删除。
 
-
+​    
 
 
 
@@ -173,7 +173,7 @@ redis-cli -p 7000
 
 再执行 `cluster nodes` 命令即可看到该 7000 端口所在集群的各节点的状态、节点 ID 等信息。
 
-
+​    
 
 
 
@@ -212,7 +212,7 @@ try {
 
 若集群中某一节点宕机，只要故障转移成功还是可以正常连接该 redis 集群。
 
-
+​    
 
 
 
@@ -239,7 +239,8 @@ try {
 
   比如，key 为 users 的 hash 上存储 n 个用户，与 key 为 users1、users2 的两个 hash 上分别存 n/2 的用户，两种相比后面的方案所占的内存更小。
 
-  ​
+
+​    
 
 ### redis.conf 参数
 
@@ -302,14 +303,13 @@ try {
   - 相关内容：<http://www.redis.cn/topics/persistence.html>
 
 
-
-​
+​    
 
 ### 减少碎片
 
 可以使 key 是等长的从而减少内存碎片。
 
-
+​    
 
 ### 异步删除
 
