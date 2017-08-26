@@ -370,11 +370,11 @@ Netty 的 EventLoopGroup 扩展了 Java 的 `ScheduledExecutorService` ，一个
 
 
 
-![EventLoop与Channel](..\img\netty-EventLoop与Channel.png)
+![EventLoop与Channel](../img/netty-EventLoop与Channel.png)
 
 
 
-![EventLoop的分配](..\img\netty-EventLoop的分配.png)
+![EventLoop的分配](../img/netty-EventLoop的分配.png)
 
 
 
@@ -581,7 +581,7 @@ ChannelHandler 的 ChannelHandlerContext 会先进行判断，如果添加该 Ch
 > 如果（当前）调用线程正是支撑 EventLoop 的线程，那么所提交的代码块将会被（直接）执行。否则， EventLoop 将调度该任务以便稍后执行，并将它放入到内部队列中。当 EventLoop下次处理它的事件时，它会执行队列中的那些任务/事件。这也就解释了任何的 Thread 是如何与 Channel 直接交互而无需在 ChannelHandler 中进行额外同步的。
 > 注意，每个 EventLoop 都有它自已的任务队列，独立于任何其他的 EventLoop。如下图，展示了EventLoop 用于调度任务的执行逻辑。这是Netty 线程模型的关键组成部分。
 >
-> ![EventLoop的执行逻辑](..\img\netty-EventLoop的执行逻辑.png)
+> ![EventLoop的执行逻辑](../img/netty-EventLoop的执行逻辑.png)
 
 虽然这样会需要上下文切换，但可以避免出现阻塞。所以除非是完全异步、耗时短的业务，需要使用专门的业务线程池。
 
@@ -621,7 +621,7 @@ worker 线程池最好用epoll。因为传统的 select 基于轮询的方式来
 
 一个更好的解决方案是：通过将已被接受的子 Channel 的 EventLoop 传递给 Bootstrap 的 `group` 方法来共享该 EventLoop。这样分配给 EventLoop 的所有 Channel 都使用同一个线程，从而避免了额外的线程创建，以及前面所提到的相关的上下文切换。如下图所示。
 
-![在两个Channel之间共享EventLoop](..\img\netty-在两个Channel之间共享EventLoop.png)
+![在两个Channel之间共享EventLoop](../img/netty-在两个Channel之间共享EventLoop.png)
 
 
 
