@@ -43,8 +43,6 @@ get name
 
 
 
-
-
 # 2. 基本数据类型
 
 #### String 字符串
@@ -76,17 +74,15 @@ get name
 
 
 
+
+
 # 3. redis cluster 集群
 
 redis 3.0 开始支持集群。具有数据分片、主从复制（异步）、故障转移等特性。
 
-### 数据分片
+**数据分片：**把数据分别放到 16384 个哈希槽中，集群中每个节点负责其中一部分的槽 slot 。
 
-把数据分别放到 16384 个哈希槽中，集群中每个节点负责其中一部分的槽 slot 。
-
-### 故障转移
-
-集群中某一主节点宕机后，会选择它的一个从节点转为主节点继续服务。
+**故障转移：**集群中某一主节点宕机后，会选择它的一个从节点转为主节点继续服务。
 
 
 
@@ -250,23 +246,14 @@ try {
   - 当 redis 内存使用达到 maxmemory 时，需要选择设置好的 `maxmemory-policy` 淘汰策略进行对老数据的淘汰。下面是可以选择的**淘汰策略**：
 
     - noeviction：不进行置换，表示即使内存达到上限也不进行置换，所有能引起内存增加的命令都会返回 error。
-
-
     - allkeys-lru：优先删除掉最近最不经常使用的 key，用以保存新数据。
-
-
     - volatile-lru：只从设置失效（expireset）的 key 中选择最近最不经常使用的 key 进行删除，用以保存新数据。
-
-
     - allkeys-random：随机从 all-keys 中选择一些 key 进行删除，用以保存新数据。
-
-
     - volatile-random：只从设置失效（expireset）的 key 中，选择一些 key 进行删除，用以保存新数据。
     - volatile-ttl：只从设置失效（expireset）的 key 中，选出存活时间（TTL）最短的 key 进行删除，用以保存新数据。
 
-  - redis 4.0 新加了 **memory** 命令，可以查看某个可以占用的内存大小：`memory usage key`
 
-    ​
+  - redis 4.0 新加了 **memory** 命令，可以查看某个可以占用的内存大小：`memory usage key`
 
 - 使用 **slowlog** 慢日志查出引发延迟的命令：
 
@@ -279,9 +266,9 @@ try {
 
   使用 `slowlog get` 命令可以查看引发延迟的命令。
 
-  ​
-
 - 设置 redis 允许处理的最大请求连接数 **maxclients**，减少延迟时间。
+
+- 设置集群节点超时时间：**cluster-node-timeout**
 
 
 - 两种持久化方式 AOF 和 RDB（可以两种一起用）：
@@ -310,18 +297,13 @@ try {
 
   - 相关内容：<http://www.redis.cn/topics/persistence.html>
 
-    ​
 
 
-- 设置集群节点超时时间：**cluster-node-timeout**
-
-  ​
+​
 
 ### 减少碎片
 
 可以使 key 是等长的从而减少内存碎片。
-
-
 
 
 
