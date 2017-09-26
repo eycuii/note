@@ -2,6 +2,66 @@
 
 ​    
 
+### 下载与安装
+
+1. 下载
+
+   https://dev.mysql.com/downloads/mysql/
+
+2. 解压文件
+
+3. 进入根目录，创建 my.ini 文件，内容如下：
+
+   ```ini
+   [client]
+   port=3306
+   default-character-set=utf8 
+   [mysqld] 
+   basedir=D:\mysql-5.7.19-winx64
+   datadir=D:\mysql-5.7.19-winx64\data
+   port=3306
+   character-set-server=utf8
+   character-set-filesystem = utf8
+   sql_mode=NO_ENGINE_SUBSTITUTION,NO_AUTO_CREATE_USER
+   explicit_defaults_for_timestamp=true
+   skip-grant-tables
+   ```
+
+4. 创建一个空文件夹，文件夹名为 data ：
+
+   ![mysql-安装](../img/mysql-安装.png)
+
+5. 以管理员身份打开 cmd ，进入 bin 目录
+
+6. 初始化
+
+   ```shell
+   mysqld --initialize-insecure
+   ```
+
+   可以选择用 --initialize-insecure 或者 --initialize 来初始化，--initialize-insecure 初始化 root 密码为空，如果用 --initialize 来初始化，会生成一个随机密码，该随机密码可以在 data 目录下的 err 文件中查看。
+
+7. 安装 MySQL 服务
+
+   ```shell
+   mysqld -install
+   ```
+
+8. 启动 MySQL 服务
+
+   ```shell
+   net start mysql
+   ```
+
+9. 进入 MySQL
+
+   ```shell
+   mysql -u root
+   ```
+
+
+​    
+
 ### 存储引擎
 
 MySQL 的索引是在存储引擎中实现的，不同的存储引擎支持的索引类型以及具体实现方式是有差别的。
