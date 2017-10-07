@@ -306,9 +306,9 @@ MySQL 官网目前已经有了 8.0.3 ，但还是 RC ，没有 GA 版本，所�
 
 10. 复制多实例脚本到服务管理目录下
 
-    ```shell
-    cp /usr/local/mysql/support-files/mysqld_multi.server /etc/init.d/mysqld_multi
-    ```
+   ```shell
+   cp /usr/local/mysql/support-files/mysqld_multi.server /etc/init.d/mysqld_multi
+   ```
 
 11. 添加脚本执行权限
 
@@ -426,22 +426,6 @@ MySQL 索引类型：
 
 
 
-
-
-EXPLAIN
-
-EXPLAIN 语句可以告诉查询语句有没有使用索引，但部分统计是估算值，分析出来的结果只是一个参考。
-
-EXPLAIN SELECT * FROM T_USER
-
-
-
-尽量使用数据类型相同的数据列进行比较。如 INT 不同于 BIGINT 。
-
-
-
-
-
 集群
 
 
@@ -454,31 +438,23 @@ EXPLAIN SELECT * FROM T_USER
 
 排序尽量使用升序
 
-order by / group by 字段包括在索引当中减少排序，效率会更高
-
 删除表所有记录 truncate 比 delete 快。
 
-在 Innodb上用 select count(*) ，因为 Innodb 会存储统计信息
 
-
-
-慎用 oder by rand()
 
 275 5.3
 
-​    
 
-慢查询日志
 
 ​    
 
-加锁，死锁
+### EXPLAIN
 
-​    
+EXPLAIN 语句可以告诉查询语句有没有使用索引。但部分统计是估算值，分析出来的结果只是一个参考。
 
-缓存
+EXPLAIN SELECT * FROM T_USER
 
-​    
+
 
 ### 使用索引
 
@@ -500,11 +476,7 @@ order by / group by 字段包括在索引当中减少排序，效率会更高
 
    如果表中包含A和B，A和B建立了联合索引。条件A=? and B=?和B=? and A=?都会使用到索引，但是B=? and A=?会经过查询分析器的优化。最好写where条件的顺序和联合索引顺序一致，避免查询分析器优化损耗性能。
 
-5. union all，in，or 会使用索引。
-
-   union all 速度最快，其次 in 。
-
-   不建议频繁用 or ，不是所有的 or 都命中索引。
+5. or 一般比 in 慢。而且不建议频繁用 or ，不是所有的 or 都命中索引。如果 MySQL 认为直接全表扫描更快，则不会使用索引。
 
    in(a,b) 如果满足条件的数据占比非常大，也是有可能不用索引而是全表扫描的。
 
@@ -545,6 +517,160 @@ order by / group by 字段包括在索引当中减少排序，效率会更高
 
 
 
+### 排序 order by
+
+在某些情况下，MySQL 不能使用索引来解析`ORDER BY`，尽管它仍然可以使用索引来查找与该`WHERE`子句匹配的行 。例子：
+
+- 使用不同的索引（非联合索引）：
+
+  ```mysql
+  SELECT * FROM t1 ORDER BY key1, key2;
+  ```
+
+- 索引非连续（联合索引中）：
+
+  ```mysql
+  SELECT * FROM t1 WHERE key2=constant ORDER BY key_part1, key_part3;
+  ```
+
+- 混合`ASC`和 `DESC`：
+
+  ```mysql
+  SELECT * FROM t1 ORDER BY key_part1 DESC, key_part2 ASC;
+  ```
+
+- WHERE 和 order by 使用不同的索引：
+
+  ```mysql
+  SELECT * FROM t1 WHERE key2=constant ORDER BY key1;
+  ```
+
+- 使用表达式：
+
+  ```mysql
+  SELECT * FROM t1 ORDER BY ABS(key);
+  SELECT * FROM t1 ORDER BY -key;
+  ```
+
+- 连接许多表，并且所有 `ORDER BY` 列都不是来自用于检索行的第一个非常量表。
+
+  常量表指：
+
+  1. 空表或者只有一行数据的表；
+
+  2. 或者使用的 where 条件中只有主键和唯一索引，并且这些比较字段非空、与常量作比较。
+
+     ```mysql
+     SELECT * FROM t WHERE primary_key=1;
+     SELECT * FROM t1,t2
+       WHERE t1.primary_key=1 AND t2.primary_key=t1.id;
+     ```
+
+
+- 同时有 `ORDER BY`和 `GROUP BY` 。
+
+- 别名：
+
+  ```mysql
+  -- 这里是对别名为a的字段（即 ABS(a)）进行的排序，所以不会使用到索引。
+  SELECT ABS(a) AS a FROM t1 ORDER BY a;
+  -- 对 t1 表的 a 字段进行了排序而不是对别名 b ，所以会使用索引。
+  SELECT ABS(a) AS b FROM t1 ORDER BY a;
+  ```
+
+
+
+### in 与 exists
+
+mysql中的in是把外表和内表作hash 连接，是以in子查询驱动外面的表集合，而exists 是对外表作loop 循环，每次loop 循环再对内表进行查询，以外表集合驱动exists子查询，这一点上in和exists是相反的。
+
+所以如果 A 是小表，B 是大表：
+
+```mysql
+select * from A where cc in (select cc from B); -- 效率低
+select * from A where exists(select cc from B where cc=A.cc); -- 效率高
+```
+
+```mysql
+select * from B where cc in (select cc from A); -- 效率高
+select * from B where exists(select cc from A where cc=B.cc); -- 效率低
+```
+
+即需要以小结果集驱动大结果集。
+
+如果上面 A ，B 两个表大小没差，则 in 和 exists 中可以任选一个。
+
+
+
+### 子查询与连接查询
+
+子查询虽然很灵活，但是执行效率并不高。因为执行子查询时，MYSQL 需要创建临时表，查询完毕后还要删除这些临时表。
+
+所以可以使用连接查询（JOIN）代替子查询，连接查询时不需要建立临时表，其速度比子查询快。
+
+
+
+### 派生表 Derived Table
+
+from () 语句中 from 后面的叫派生表。
+
+MySQL 对派生表的执行策略有两种：
+
+1. 派生表与外部查询部分合并。（Merge the derived table into the outer query block）
+
+   如：
+
+   ```mysql
+   SELECT *
+     FROM t1 JOIN (SELECT t2.f1 FROM t2) AS derived_t2 ON t1.f2=derived_t2.f1
+     WHERE t1.f1 > 0;
+     
+   -- 变成：
+   SELECT t1.*, t2.f1
+     FROM t1 JOIN t2 ON t1.f2=t2.f1
+     WHERE t1.f1 > 0;
+   ```
+
+2. 对派生表建立临时表，然后利用临时表来协助完成其他父查询的操作，比如JOIN等操作。
+
+如果合并会导致外部查询块拥有过多的基表（base table），MySQL 会选择第二种方案。
+
+
+
+### 分组 group by
+
+默认情况下，MySQL 对所有查询进行排序。group by假如不能使用索引扫描完成，在使用临时表分组时内部会先进行排序再分组，如果不想排序，可以加order by null 强制取消内部排序操作。
+
+表t1有c1,c2,c3,c4四个字段，有(c1,c2,c3)联合索引时，以下例子都会使用到该索引：
+
+```mysql
+SELECT c1, c2 FROM t1 GROUP BY c1, c2;
+SELECT DISTINCT c1, c2 FROM t1;
+SELECT c1, MIN(c2) FROM t1 GROUP BY c1;
+SELECT c1, c2 FROM t1 WHERE c1 < const GROUP BY c1, c2;
+SELECT MAX(c3), MIN(c3), c1, c2 FROM t1 WHERE c2 > const GROUP BY c1, c2;
+SELECT c2 FROM t1 WHERE c1 < const GROUP BY c1, c2;
+SELECT c1, c2 FROM t1 WHERE c3 = const GROUP BY c1, c2;
+```
+
+但下面这些不会用到索引：
+
+```mysql
+-- 使用min或max以外的聚合函数
+SELECT c1, SUM(c2) FROM t1 GROUP BY c1;
+-- 联合索引，但是没有从最左边的字段开始用
+SELECT c1, c2 FROM t1 GROUP BY c2, c3;
+```
+
+如果要使用除min或max以外的聚合函数，可以使用 distinct ：
+
+```mysql
+SELECT COUNT(DISTINCT c1), SUM(DISTINCT c1) FROM t1;
+SELECT COUNT(DISTINCT c1, c2), COUNT(DISTINCT c2, c1) FROM t1;
+```
+
+
+
 ### 对 InnoDB 表使用 count()
 
 InnoDB 表没有计数器，因为并发事务会在相同时间看到不同的行数。因此，SELECT COUNT(*) 语句只计算当前事务可见的行数。
@@ -559,9 +685,9 @@ count(*) 与 count(1) 效果一样，没区别。
 
 ### 分页 limit
 
-越往后的数据，分页查询的效率越差。即使使用倒序查出后面的数据也会慢。
+越往后的数据，分页查询的效率越差。即使使用倒序查询后面的数据也会慢。
 
-如果有加 where 条件或者 order by 等语句，使用索引会变快。尤其覆盖索引类型，因为它只包含了那个索引字段，不需要再去找该记录的其他数据，速度会更快。
+如果有加 where 条件或者 order by 等语句，使用索引会变快。尤其覆盖索引类型，因为只需要查那个索引字段，不需要再去找该记录的其他数据，速度会更快。
 
 因此，可以先对某字段（比如主键）进行分页查询，然后用返回的主键作为子查询的结果，来检索该表其它字段的值。或者类似地也可以用 inner join 。对大分页的情况，推荐使用 inner join ，速度更快。
 
@@ -572,9 +698,246 @@ SELECT * FROM (SELECT * FROM t WHERE id > ( SELECT id FROM t ORDER BY id DESC LI
 SELECT * FROM t INNER JOIN ( SELECT id FROM t ORDER BY id DESC LIMIT 935500,10) t2 USING (id);
 ```
 
-如果是不带任何条件的分页，采用对主键或唯一索引采用范围检索的方法更合适，如：
+如果是不带任何条件的分页，对主键或唯一索引采用范围检索的方法更合适，如：
 
 ```mysql
 select * from t  where id <= max_id and id >= min_id limit 10;
 ```
+
+
+
+### 强制索引 force index
+
+使用MySQL force index 强制索引的目的是对目标表添加最关键的索引，使其优先使用该索引筛选数据。
+
+可能有时候因某些原因 SQL 语句没有用到索引，这时候也可以尝试强制使用索引。
+
+```mysql
+select * from ws_shop a 
+force index(create_time)
+where date(create_time-interval 6 hour) > '2016-10-01 06:00:00'
+```
+
+但加了 force index 也不一定真的会用到索引，所以可以先用 explain 检查。
+
+
+
+### insert
+
+插入时如果字段有默认值，除非插入的值与该默认值不同，不要再显示地写到 insert 语句，因为这样 MySQL 会做多余的解析。
+
+插入多条语句建议使用 values (), (), ().. 类型，比多次执行插入单条记录的方法更快。
+
+
+
+### InnoDB 表的主键
+
+InnoDB引擎表的一些关键特征：
+
+- InnoDB引擎表是基于B+树的索引组织表(IOT)；
+- 每个表都需要有一个聚集索引(clustered index)；
+- 所有的行记录都存储在B+树的叶子节点(leaf pages of the tree)；
+- 基于聚集索引的增、删、改、查的效率相对是最高的；
+- 如果我们定义了主键(PRIMARY KEY)，那么InnoDB会选择其作为聚集索引；
+- 如果没有显式定义主键，则InnoDB会选择第一个不包含有NULL值的唯一索引作为主键索引；
+- 如果也没有这样的唯一索引，则InnoDB会选择内置6字节长的ROWID作为隐含的聚集索引(ROWID随着行记录的写入而主键递增，这个ROWID不像ORACLE的ROWID那样可引用，是隐含的)。
+
+所以，如果InnoDB表的数据写入顺序能和B+树索引的叶子节点顺序一致的话，这时候存取效率是最高的，也就是下面这几种情况的存取效率最高：
+
+- 使用自增列(INT/BIGINT类型)做主键，这时候写入顺序是自增的，和B+数叶子节点分裂顺序一致；
+- 该表不指定自增列做主键，同时也没有可以被选为主键的唯一索引(上面的条件)，这时候InnoDB会选择内置的ROWID作为主键，写入顺序和ROWID增长顺序一致；
+- 除此以外，如果一个InnoDB表又没有显示主键，又有可以被选择为主键的唯一索引，但该唯一索引可能不是递增关系时(例如字符串、UUID、多字段联合唯一索引的情况)，该表的存取效率就会比较差。
+
+
+
+### 慢查询
+
+超过一定时间的（long_query_time） SQL 语句。
+
+默认情况下，MySQL 不启动慢查询日志，需要去手动来设置参数。可以在 MySQL 配置文件的 [mysqld] 下进行设置：
+
+slow_query_log ：这个参数设置为ON，MySQL 可以捕获执行时间超过一定数值的SQL语句。
+
+long_query_time ：当SQL语句执行时间超过此数值时，就会被记录到日志中，建议设置为1或者更短。单位是秒。
+
+slow_query_log_file ：记录日志的文件名。可以不设置该参数，系统则会默认给一个 host_name-slow.log 文件。5.6 之前该参数名为 log-slow-queries 。
+
+log_queries_not_using_indexes ：这个参数设置为ON，可以捕获到所有未使用索引的SQL语句，尽管这个SQL语句有可能执行得挺快。
+
+log_output ：日志存储方式。log_output='FILE'表示将日志存入文件，默认值是'FILE'。'TABLE'表示将日志存入数据库，这样日志信息就会被写入到mysql.slow_log表中。MySQL数据库支持同时两种日志存储方式，配置的时候以逗号隔开即可，如：log_output='FILE,TABLE'。
+
+开启慢查询日志会或多或少带来一定的性能影响。
+
+
+
+
+
+## MySQL 主从复制
+
+有基于日志（binlog 二进制日志）和基于GTID（全局事务标示符）两种复制模式。
+
+### 基于 BinLog 二进制日志
+
+binlog 记录所有更新了数据或者已经潜在更新了数据（例如，没有匹配任何行的一个DELETE）的所有语句。语句以“事件”的形式保存，它描述数据更改，它是以二进制的形式保存在磁盘中。
+
+#### **binlog日志格式**
+
+（1） statement ： 记录每一条更改数据的sql
+
+- 优点：binlog文件较小，节约I/O，性能较高。
+- 缺点：不是所有的数据更改都会写入binlog文件中，尤其是使用MySQL中的一些特殊函数（如LOAD_FILE()、UUID()等）和一些不确定的语句操作，从而导致主从数据无法复制的问题。
+
+（2） row ： 不记录sql，只记录每行数据的更改细节
+
+- 优点：详细的记录了每一行数据的更改细节，这也意味着不会由于使用一些特殊函数或其他情况导致不能复制的问题。
+- 缺点：由于row格式记录了每一行数据的更改细节，会产生大量的binlog日志内容，性能不佳，并且会增大主从同步延迟出现的几率。
+
+（3） mixed：一般的语句修改使用statment格式保存binlog，如一些函数，statement无法完成主从复制的操作，则采用row格式保存binlog，MySQL会根据执行的每一条具体的sql语句来区分对待记录的日志形式，也就是在Statement和Row之间选择一种。
+
+#### 主从复制过程
+
+mysql主从复制需要三个线程，master（binlog dump thread）、slave（I/O thread 、SQL thread）。
+
+**master**
+
+（1）binlog dump线程：当主库中有数据更新时，那么主库就会根据按照设置的binlog格式，将此次更新的事件类型写入到主库的binlog文件中，此时主库会创建log dump线程通知slave有数据更新，当I/O线程请求日志内容时，会将此时的binlog名称和当前更新的位置同时传给slave的I/O线程。
+
+**slave**
+
+（2）I/O线程：该线程会连接到master，向log dump线程请求一份指定binlog文件位置的副本，并将请求回来的binlog存到本地的relay log中，relay log和binlog日志一样也是记录了数据更新的事件，它也是按照递增后缀名的方式，产生多个relay log（ host_name-relay-bin.000001）文件，slave会使用一个index文件（ host_name-relay-bin.index）来追踪当前正在使用的relay log文件。
+
+（3）SQL线程：该线程检测到relay log有更新后，会读取并在本地做redo操作，将发生在主库的事件在本地重新执行一遍，来保证主从数据同步。此外，如果一个relay log文件中的全部事件都执行完毕，那么SQL线程会自动将该relay log 文件删除掉。
+
+#### sync_binlog
+
+可以通过 BinLog 的 sync_binlog 参数对日志同步的次数/时机做控制。
+
+默认是 sync_binlog=0，表示MySQL不进行对binlog的更新，由文件系统自己控制它的缓存的刷新。这时候的性能是最好的，但是风险也是最大的。因为一旦系统Crash，在binlog_cache中的所有binlog信息都会被丢失。
+
+如果sync_binlog=n>0，表示每n次事务提交，MySQL将对 BinLog 进行更新。
+
+最安全的就是sync_binlog=1，表示每次事务提交MySQL都会把binlog刷下去，但是也是性能损耗最大的。对于高并发事务的系统来说，“sync_binlog”设置为0和设置为1的系统写入性能差距可能高达5倍甚至更多。
+
+#### log-slave-updates
+
+默认是关闭的，如果 slave 开启了 log-slave-updates参数，它从 master 复制的数据会写入 log-bin日志文件里。如果一个 MySQL 服务器既是 slave 又是 master ，就需要开启 log-slave-updates slave 和 log-bin 参数。
+
+
+
+### 基于 GTID
+
+GTID(Global Transaction ID) 是MySQL5.6引入的功能，可以在集群全局范围标识事务。支持GTID后，备库启动时不再需要通过位点信息从主库来拉取binlog，而是根据备库本身已执行和拉取的gtid去主库查找第一个未执行的GTID，从此GTID位置开始拉取binlog。
+
+GTID 相对 BinLog 方式简化了复制的使用过程和降低复制集群的维护难度，并且更能保证数据一致性。
+
+#### GTID结构
+
+```
+GTID = source_id:transaction_id
+
+```
+
+source_id:MySQL实例的sever_uuid。
+transaction_id:MySQL实例内部的一个事务顺序号，从1开始递增。
+
+#### 主从复制过程
+
+slave 会从 master 获取没有执行过的事务 ID ，然后进行更新。
+
+![cdf68f4825178fde75299e277d0887b99c70e8f1](C:\Users\admin\Desktop\cdf68f4825178fde75299e277d0887b99c70e8f1.jpeg)
+
+slave1 : 将自身的UUID1:1 发送给 master，然后接收到了 UUID1:2,UUID1:3 event
+slave2 : 将自身的UUID1:1,UUID1:2 发送给 master，然后接收到了UUID1:3 event
+
+#### GTID 的持久化
+
+GTID 可以在 BinLog 或 gtid_executed 系统表中进行持久化。其中 gtid_executed 系统表是 5.7.5 开始支持的，当主库上没有开启log_bin或在备库上没有开启log_slave_updates时，mysql.gtid_executed会跟用户事务一起每次更新。否则只在binlog日志rotate或shutdown时更新mysql.gtid_executed。
+
+#### GTID不支持的语句/事务
+
+1. CREATE TABLE … SELECT（binlog_format=row, gtid_next='automatic'时可以解决此问题。生成的binlog包含两个GTID， 一个是建表语句，一个是包含多个insert的事务。）
+2. CREATE TEMPORARY TABLE ， DROP TEMPORARY TABLE
+3. 事务中同时使用了支持事务和不支持事务的引擎
+
+启用GTID前，可以检测系统中是否有GTID不支持的语句/事务，提前处理。检测方法：
+
+使用全局系统变量enforce-gtid-consistency。该参数可以设置为：
+
+OFF    ：不检测是否有GTID不支持的语句/事务
+
+WARN   ：当发现不支持的语句/事务时，返回警告，并在日志中记录警告信息。
+
+ON     ：当发现语句/事务不支持GTID时，返回错误。
+
+
+
+### 主从同步延迟
+
+实际应用中有可能因锁竞争等问题出现 MySQL 主从同步延迟的现象。
+
+对此有几种常见的解决方案：
+
+- 使用 redis 等作为缓存；
+- 关闭 slave 的日志功能；
+
+
+- 负载均衡。
+
+
+
+## 负载均衡方案
+
+### lvs + keepalived + mha
+
+#### 概述
+
+MySQL 建立主从复制环境，MHA负责MySQL的高可用，而LVS（DR模式）主要对MHA进行负载均衡，防止单个MHA节点压力过大以及发生单点故障。Keepalived主要负责防止LVS服务器宕机。
+
+![1428295759988162](C:\Users\admin\Desktop\1428295759988162.png)
+
+故障后转移：
+
+![1428295766120983](C:\Users\admin\Desktop\1428295766120983.png)
+
+
+
+#### mha
+
+一个MySQL高可用软件。分为 manager 和 node 两个部分：
+
+MHA Manager会定时探测集群中的master节点，当master出现故障时，它可以自动将持有最新数据的slave提升为新的master，然后将所有其他的slave重新指向新的master。MHA Manager可以独立部署在一台独立的机器上管理多个Master-Slave集群，也可以部署在一台Slave上。
+
+MHA Node运行在每台MySQL服务器上，主要作用是切换时处理二进制日志，确保切换尽量少丢数据。
+
+mha 目前最新版本是 0.57 ，支持 MySQL 5.7 。
+
+
+
+#### lvs
+
+是Linux虚拟服务器，主要用于服务器集群的负载均衡。它工作在网络层，可以实现高性能，高可用的服务器集群技术。
+
+LVS的转发主要通过修改IP地址（NAT模式，分为源地址修改SNAT和目标地址修改DNAT）、修改目标MAC（DR模式）来实现。
+
+##### NAT 模式
+
+![182157070532417](C:\Users\admin\Desktop\182157070532417.jpg)
+
+NAT（Network Address Translation）是一种外网和内网地址映射的技术。NAT模式下，网络数据报的进出都要经过LVS的处理。LVS需要作为RS（真实服务器）的网关。当包到达LVS时，LVS做目标地址转换（DNAT），将目标IP改为RS的IP。RS接收到包以后，仿佛是客户端直接发给它的一样。RS处理完，返回响应时，源IP是RS IP，目标IP是客户端的IP。这时RS的包通过网关（LVS）中转，LVS会做源地址转换（SNAT），将包的源地址改为VIP，这样，这个包对客户端看起来就仿佛是LVS直接返回给它的。客户端无法感知到后端RS的存在。
+
+##### DR 模式
+
+![182303190069562](C:\Users\admin\Desktop\182303190069562.jpg)
+
+DR模式下需要LVS和RS集群绑定同一个VIP（RS通过将VIP绑定在loopback实现），但与NAT的不同点在于：请求由LVS接受，由真实提供服务的服务器（RealServer, RS）直接返回给用户，返回的时候不经过LVS。详细来看，一个请求过来时，LVS只需要将网络帧的MAC地址修改为某一台RS的MAC，该包就会被转发到相应的RS处理，注意此时的源IP和目标IP都没变，LVS只是做了一下移花接木。RS收到LVS转发来的包时，链路层发现MAC是自己的，到上面的网络层，发现IP也是自己的，于是这个包被合法地接受，RS感知不到前面有LVS的存在。而当RS返回响应时，只要直接向源IP（即用户的IP）返回即可，不再经过LVS。
+
+DR负载均衡模式数据分发过程中不修改IP地址，只修改mac地址，由于实际处理请求的真实物理IP地址和数据请求目的IP地址一致，所以不需要通过负载均衡服务器进行地址转换，可将响应数据包直接返回给用户浏览器，避免负载均衡服务器网卡带宽成为瓶颈。因此，DR模式具有较好的性能，也是目前大型网站使用最广泛的一种负载均衡手段。
+
+
+
+#### Keepalived
+
+实现服务高可用性的软件方案，避免出现单点故障。Keepalived一般用来实现轻量级高可用性，且不需要共享存储，一般用于两个节点之间，常见有LVS+Keepalived、Nginx+Keepalived组合。
+
+如果某个服务器节点出现异常，或者工作出现故障，Keepalived将检测到，并将出现的故障的服务器节点从集群系统中剔除，选出新的 master 。若服务器恢复了，则keepalived将其重新加入到集群中。
 
