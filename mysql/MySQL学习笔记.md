@@ -404,7 +404,7 @@ MySQL 索引类型：
 - 不要使用*select \**（涉及到数据字典解析，会降低性能）。
 - 删除表所有记录truncate比delete快。
 
- 
+
 
 ### EXPLAIN 语句
 
@@ -474,7 +474,7 @@ EXPLAIN SELECT * FROM T_USER
 
 13. 到底是否会使用索引没有绝对性的，具体还要根据实际业务进行分析。
 
- 
+
 
 ### 排序 ORDER BY
 
@@ -518,7 +518,7 @@ SELECT* FROM t1 ORDER BY -key;
   1. 空表或者只有一行数据的表；
 
 
-  2. 或者使用的where条件中只有主键和唯一索引，并且这些比较字段非空、与常量作比较。
+    2. 或者使用的where条件中只有主键和唯一索引，并且这些比较字段非空、与常量作比较。
 
   ```mysql
   SELECT * FROM t WHERE primary_key=1;
@@ -656,7 +656,7 @@ InnoDB 表没有计数器，因为并发事务会在相同时间看到不同的�
 ```mysql
 -- 子查询方式：
 SELECT * FROM (SELECT * FROM t WHERE id > (SELECT id FROM t ORDER BY id DESC LIMIT 935510, 1) LIMIT 10) t ORDER BY idDESC;
---inner join方式：
+-- inner join方式：
 SELECT * FROM t INNER JOIN ( SELECT id FROM tORDER BY id DESC LIMIT 935500,10) t2 USING (id);
 ```
 
@@ -704,7 +704,7 @@ InnoDB 引擎表的一些关键特征：
 - 如果没有显式定义主键，则 InnoDB 会选择第一个不包含有 NULL 值的唯一索引作为主键索引；
 - 如果也没有这样的唯一索引，则 InnoDB 会选择内置6字节长的 ROWID 作为隐含的聚集索引（ROWID 随着行记录的写入而主键递增，这个 ROWID 不像 ORACLE 的 ROWID 那样可引用，是隐含的）。
 
- 
+
 
 所以，如果 InnoDB 表的数据写入顺序能和 B+ 树索引的叶子节点顺序一致的话，这时候存取效率是最高的，也就是下面这几种情况的存取效率最高：
 

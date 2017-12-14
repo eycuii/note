@@ -15,7 +15,7 @@
 ```java
 public class Singleton {
 	
-	private static Singleton instance=new Singleton();
+	private static final Singleton instance=new Singleton();
 	
 	private Singleton(){
 	}
@@ -26,7 +26,9 @@ public class Singleton {
 }
 ```
 
-缺点：提前 new 出来实例了，并不是在第一次调用 get 方法时才实例化，没有进行延迟加载。
+优点：因为加载就初始化了，是线程安全的。且不用额外判断加锁等。性能较好。
+
+缺点：如果这个单例没有被用起来会造成资源浪费。
 
 
 
@@ -35,7 +37,7 @@ public class Singleton {
 ```java
 public class Singleton{
 	
-	private static Singleton instance;
+	private static final Singleton instance;
 	
 	private Singleton(){
 	}
@@ -60,7 +62,7 @@ public class Singleton{
 ```java
 public class Singleton{
 	
-	private static Singleton instance;
+	private static final Singleton instance;
 	
 	private Singleton(){
 	}
@@ -79,7 +81,7 @@ public class Singleton{
 ```java
 public class Singleton{
 	
-	private static Singleton instance;
+	private static final Singleton instance;
 	
 	private Singleton(){
 	}
@@ -105,7 +107,7 @@ public class Singleton{
 ```java
 public class Singleton{
 	
-	private static Singleton instance;
+	private static final Singleton instance;
 	
 	private Singleton(){
 	}
@@ -145,12 +147,12 @@ public class Singleton{
 ```java
 public class Singleton{
 	
-	private static volatile Singleton instance;
+	private static final volatile Singleton instance;
 	
 	private Singleton(){
 	}
 	
-	public static  Singleton getInstance(){
+	public static Singleton getInstance(){
 		
 		if(instance==null){
 			synchronized(Singleton.class){
@@ -200,16 +202,16 @@ public class Singleton{
 	
 	private Singleton(){
 	}
-	public static  Singleton getInstance(){
+	public static Singleton getInstance(){
 		return InstanceHolder.instance;
 	}
 	static class InstanceHolder{
-		private static Singleton instance=new Singleton();
+		private static final Singleton instance=new Singleton();
 	}
 }
 ```
 
-静态内部类在没有显示调用的时候是不会进行加载的，当执行了`return InstanceHolder.instance` 后才加载初始化，这样就实现了正确的单例模式。
+优点：静态内部类在没有显示调用的时候是不会进行加载的，当执行了`return InstanceHolder.instance` 后才加载初始化，这样就实现了正确的单例模式。不用去加锁。
 
 
 
