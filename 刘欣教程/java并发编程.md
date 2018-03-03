@@ -6,7 +6,7 @@
 
 线程：每个线程都有自己的堆栈，寄存器。多个线程共享进程的数据。
 
-
+​    
 
 线程之间的通信：wait、notify、notifyAll
 
@@ -16,9 +16,9 @@ Timed Waiting -> Waiting -> Blocked -> Ready -> Running
 
 等待中（wait()）的线程被唤醒（notify()）后进入 Blocked 状态，成功获得锁再进入 Ready 状态。
 
+​    
 
-
-java 常用的锁：
+java 常用的锁： 
 
 可重入互斥锁 ReentrantLock
 
@@ -30,7 +30,7 @@ java 常用的锁：
 
 栅栏 CyclicBarrier：n 个线程互相等其他线程都达到某"栅栏"处才执行。比如，某业务场景：旅游时，全部人（线程）都到集合点1后游览景点1，然后到集合点2后游览景点2...
 
-
+​    
 
 死锁：
 
