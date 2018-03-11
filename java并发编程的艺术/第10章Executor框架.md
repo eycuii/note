@@ -4,7 +4,7 @@
 
 Executor 框架包含的主要的类与接口：
 
-![java并发编程的艺术-Executor框架的类与接口](..\img\java并发编程的艺术-Executor框架的类与接口.png)
+![java并发编程的艺术-Executor框架的类与接口](../img/java并发编程的艺术-Executor框架的类与接口.png)
 
 ​    
 

@@ -171,7 +171,7 @@ void createMap(Thread t, T firstValue) {
 
 线程与 ThreadLocal 关系图：
 
-![java并发编程的艺术-Thread与ThreadLocal的关系](..\img\java并发编程的艺术-Thread与ThreadLocal的关系.jpg)
+![java并发编程的艺术-Thread与ThreadLocal的关系](../img/java并发编程的艺术-Thread与ThreadLocal的关系.jpg)
 
 ##### 这样设计的目的
 
