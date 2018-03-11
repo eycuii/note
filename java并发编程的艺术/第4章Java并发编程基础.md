@@ -45,11 +45,159 @@ PipedOutputStream、PipedInputStream、PipedReader 和 PipedWriter
 
 作用是提供线程内的局部变量。
 
-每个 Thread 维护一个 ThreadLocalMap 映射表，这个映射表的 key 是 ThreadLocal 实例本身，value 是要存储的对象。
-
 https://www.zhihu.com/question/23089780
 
-会引发内存泄漏。（所以建议定义 ThreadLocal 实例为 private static 的，并手动调用 ThreadLocal 的 remove()）//////////////////////////////////////////////////////////////
+#### 使用
+
+##### get() / set() 
+
+获取 / 设置当前线程关联的 ThreadLocal 上的值。
+
+##### remove()
+
+删除当前线程的 ThreadLocal 绑定的值。
+
+##### initialValue()
+
+设置 ThreadLocal 的初始值。在第一次调用 get 方法时会被调用。或手动调用 remove 方法后，再次调用 get 方法时也会被调用。
+
+##### 例子
+
+```java
+public class TestThreadLocal {
+
+    public static void main(String[] args) {
+        for (int i = 0; i < 5; i++) {
+            new Thread(new MyThread(i)).start();
+        }
+    }
+    
+    private static final ThreadLocal<Integer> value = new ThreadLocal<Integer>() {
+        @Override
+        protected Integer initialValue() {
+            return 0;
+        }
+    };
+
+    static class MyThread implements Runnable {
+        private int index;
+
+        public MyThread(int index) {
+            this.index = index;
+        }
+
+        public void run() {
+            System.out.println("线程" + index + "的初始value:" + value.get());
+            for (int i = 0; i < 10; i++) {
+                value.set(value.get() + i);
+            }
+            System.out.println("线程" + index + "的累加value:" + value.get());
+        }
+    }
+}
+```
+
+执行结果为：
+
+```
+线程0的初始value:0
+线程3的初始value:0
+线程2的初始value:0
+线程2的累加value:45
+线程1的初始value:0
+线程3的累加value:45
+线程0的累加value:45
+线程1的累加value:45
+线程4的初始value:0
+线程4的累加value:45
+```
+
+各个线程的 value 值是相互独立的。
+
+#### 内部实现原理
+
+ThreadLocal 类内部会创建一个 Map，然后用线程的 ID 作为该 Map 的 key，实例对象作为 Map 的value，这样就能达到各个线程的值隔离的效果。
+
+jdk 8 中 ThreadLocal 的 **get** 方法源码：
+
+```java
+public T get() {
+    Thread t = Thread.currentThread(); // 获取当前线程
+    ThreadLocalMap map = getMap(t); // 获取当前线程的ThreadLocalMap
+    if (map != null) {
+    	ThreadLocalMap.Entry e = map.getEntry(this);
+        if (e != null) {
+            @SuppressWarnings("unchecked")
+            T result = (T)e.value;
+            return result;
+        }
+    }
+    return setInitialValue();
+}
+```
+
+其中 **getMap** 方法源码：
+
+```java
+ThreadLocalMap getMap(Thread t) {
+	return t.threadLocals; // 每个线程都有一个ThreadLocalMap
+}
+```
+
+**setInitialValue** 方法的源码：
+
+```java
+private T setInitialValue() {
+    T value = initialValue();
+    Thread t = Thread.currentThread();
+    ThreadLocalMap map = getMap(t);
+    if (map != null)
+        map.set(this, value);
+    else
+        createMap(t, value);
+    return value;
+}
+```
+
+**createMap** 方法的源码：
+
+```java
+void createMap(Thread t, T firstValue) {
+	t.threadLocals = new ThreadLocalMap(this, firstValue);
+}
+```
+
+可以看到，每个线程都有一个 ThreadLocalMap，它的 key 就是 ThreadLocal（引用），value 是要存储的对象，即真正要存储的局部变量就是存在当前线程的 ThreadLocalMap 中的。
+
+线程与 ThreadLocal 关系图：
+
+![java并发编程的艺术-Thread与ThreadLocal的关系](..\img\java并发编程的艺术-Thread与ThreadLocal的关系.jpg)
+
+##### 这样设计的目的
+
+隔离其他线程，当前线程就获取自己的对象。
+
+线程销毁时，它的 ThreadLocalMap 也会被销毁，所以能减少内存使用。
+
+#### 内存泄漏问题
+
+会引发内存泄漏。
+
+##### 原因
+
+如上面的关系图，ThreadLocalMap 的 key 是 ThreadLocal 对象的引用，如果线程外部没有强引用引用它（ThreadLocal），那么系统在 GC 的时候，会把这个 ThreadLocal 对象也回收。这样 ThreadLocalMap 会出现 key 为 null 的 Entry，线程就没法访问这个 key 为 null 的 value。而如果线程一直没有结束，那这个 key 为 null 的 value 就会一直存在一条强引用链，即无法回收，造成了内存泄漏。
+
+##### java 源码中的措施
+
+为了防止内存泄漏，ThreadLocalMap 在调用它的 getEntry 方法时，如果 key 为空（ThreadLocal 对象为空），则会擦除该位置的 entry。这样 entry 的 value 就没有了强引用链，自然会被回收。
+
+ThreadLocalMap 在 set 方法时也类型，会将 key 为 null 的这些 entry 都删除。
+
+但是光这样是不够的，因为上面的措施需要一个前提条件：**需要去调用 ThreadLocalMap 的 getEntry 方法或 set 方法。**所以还需要手动调用 ThreadLocal 的 **remove** 方法而删除不需要的 ThreadLocal。
+
+##### 最终建议
+
+定义 ThreadLocal 实例为 private static 的（这样 ThreadLocal 有了强引用，不会被回收），并手动调用 ThreadLocal 的 remove() 方法。
 
 ​    
 
