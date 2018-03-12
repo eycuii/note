@@ -79,7 +79,7 @@ Executors 可以创建 2 种类型的 ScheduledThreadPoolExecutor：
 
 若干个线程。
 
-调用 scheduleAtFixedRate() 方法或者 scheduleWithFixedDelay() 方法时，会向 DelayQueue 队列添加一个实现了 RunnableScheduledFutur 接口的 ScheduledFutureTask。
+调用 scheduleAtFixedRate() 方法或者 scheduleWithFixedDelay() 方法时，会向 DelayQueue 队列添加一个实现了 RunnableScheduledFuture 接口的 ScheduledFutureTask。
 
 DelayQueue 封装了一个 PriorityQueue，这个 PriorityQueue 会对队列中的 ScheduledFutureTask 进行排序。排序时，time 小的排在前面（时间早的任务将被先执行）。如果两个 ScheduledFutureTask 的 time 相同，就比较 sequenceNumber 序号，sequenceNumber 小的排在前面（也就是说，如果两个任务的执行时间相同，那么先提交的任务将被先执行）。
 
@@ -123,11 +123,9 @@ FutureTask 的实现基于 AbstractQueuedSynchronizer 队列同步器（第 5 �
 
 1. 未启动。FutureTask.run() 方法还没有被执行之前，FutureTask 处于未启动状态。当创建一个 FutureTask，且没有执行 FutureTask.run() 方法之前，这个 FutureTask 处于未启动状态。
 2. 已启动。FutureTask.run() 方法被执行的过程中，FutureTask 处于已启动状态。
-3. 已完成。FutureTask.run() 方法执行完后正常结束，或被取消（FutureTask.cancel（…）），或
+3. 已完成。FutureTask.run() 方法执行完后正常结束，或被取消（FutureTask.cancel（…）），或执行 FutureTask.run() 方法时抛出异常而异常结束，FutureTask 处于已完成状态。 
 
-执行 FutureTask.run() 方法时抛出异常而异常结束，FutureTask 处于已完成状态。 
-
-![java并发编程的艺术-FutureTask的get和cancel的执行示意图](..\img\java并发编程的艺术-FutureTask的get和cancel的执行示意图.png)
+![java并发编程的艺术-FutureTask的get和cancel的执行示意图](../img/java并发编程的艺术-FutureTask的get和cancel的执行示意图.png)
 
 ​    
 

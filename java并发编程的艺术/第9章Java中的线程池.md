@@ -29,7 +29,7 @@ ThreadPoolExecutor 执行 execute 方法分下面4种情况：
    - LinkedBlockingQueue：一个基于链表结构的阻塞队列，此队列按 FIFO 排序元素，吞吐量通常要高于 ArrayBlockingQueue。静态工厂方法 Executors.newFixedThreadPool() 使用了这个队列。
 
 
-   - SynchronousQueue：一个不存储元素的阻塞队列。每个插入操作必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态，吞吐量通常要高于 Linked-BlockingQueue，静态工厂方法 Executors.newCachedThreadPool 使用了这个队列。
+   - SynchronousQueue：一个不存储元素的阻塞队列。每个插入操作必须等到另一个线程调用移除操作，否则插入操作一直处于阻塞状态，吞吐量通常要高于 LinkedBlockingQueue，静态工厂方法 Executors.newCachedThreadPool 使用了这个队列。
 
 
    - PriorityBlockingQueue：一个具有优先级的无限阻塞队列。
@@ -41,7 +41,6 @@ ThreadPoolExecutor 执行 execute 方法分下面4种情况：
 5. **RejectedExecutionHandler（饱和策略）**：当队列和线程池都满了，说明线程池处于饱和状态，那么必须采取一种策略处理提交的新任务。这个策略默认情况下是 AbortPolicy，表示无法处理新任务时抛出异常。在JDK  1.5 中 Java 线程池框架提供了以下 4 种策略：
 
    - AbortPolicy：直接抛出异常。
-
 
    - CallerRunsPolicy：只用调用者所在线程来运行任务。
 
@@ -104,10 +103,10 @@ try {
 
 ### 合理配置线程池
 
-- CPU 密集型任务：应配置尽可能小的线程，如配置Ncpu+1个线程的线程池。
+- CPU 密集型任务：应配置尽可能小的线程，如配置 Ncpu+1 个线程的线程池。
 
 
-- IO 密集型任务：IO 密集型任务线程并不是一直在执行任务，则应配置尽可能多的线程，如2*Ncpu。
+- IO 密集型任务：IO 密集型任务线程并不是一直在执行任务，则应配置尽可能多的线程，如 2*Ncpu。
 
 
 - 混合型的任务：如果可以拆分，将其拆分成一个 CPU 密集型任务和一个 IO 密集型任务，只要这两个任务执行的时间相差不是太大，那么分解后执行的吞吐量将高于串行执行的吞吐量。如果这两个任务执行时间相差太大，则没必要进行分解。

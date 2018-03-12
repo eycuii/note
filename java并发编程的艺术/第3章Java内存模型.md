@@ -4,7 +4,7 @@
 
 ## Java 内存模型（JMM）的抽象结构
 
-![java并发编程的艺术-Java内存模型的抽象结构](..\img\java并发编程的艺术-Java内存模型的抽象结构.png)
+![java并发编程的艺术-Java内存模型的抽象结构](../img/java并发编程的艺术-Java内存模型的抽象结构.png)
 
 ​    
 
