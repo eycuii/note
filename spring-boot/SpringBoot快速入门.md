@@ -1,4 +1,4 @@
-# Spring Boot 学习笔记
+# Spring Boot 快速入门
 
 ​    
 
@@ -16,7 +16,7 @@ https://docs.spring.io/spring-boot/docs/current/reference/html/
 
 ​    
 
-## 快速入门（Spring Boot + MySql + MyBatis）
+## 搭建 Spring Boot + MySql + MyBatis 项目
 
 1. 访问 http://start.spring.io/。
 
