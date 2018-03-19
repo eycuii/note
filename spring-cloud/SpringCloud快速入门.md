@@ -173,7 +173,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
 
 4. 运行 jar 包
 
-   分别按 application-peer1.properties 和 application.peer2.properties 启动项目：
+   分别按 application-peer1.properties 和 application.peer2.properties 配置文件启动项目：
 
    ```shell
    java -jar spring-cloud-eureka-server-0.0.1-SNAPSHOT.jar --spring.profiles.active=peer1
@@ -184,4 +184,190 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
 
    ![springcloud-eureka集群界面](../img/springcloud-eureka集群界面.png)
 
-   ​
+
+​    
+
+## 服务提供与消费
+
+### 服务提供者
+
+1. 创建一个 spring boot 项目作为服务提供者
+
+2. pom.xml：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   	<modelVersion>4.0.0</modelVersion>
+
+   	<groupId>com.demo</groupId>
+   	<artifactId>spring-cloud-producer</artifactId>
+   	<version>0.0.1-SNAPSHOT</version>
+   	<packaging>jar</packaging>
+
+   	<name>spring-cloud-producer</name>
+   	<description>Demo project for Spring Boot</description>
+
+   	<parent>
+   		<groupId>org.springframework.boot</groupId>
+   		<artifactId>spring-boot-starter-parent</artifactId>
+   		<version>2.0.0.RELEASE</version>
+   		<relativePath/> <!-- lookup parent from repository -->
+   	</parent>
+
+   	<properties>
+   		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+   		<java.version>1.8</java.version>
+           <spring-cloud.version>Finchley.M8</spring-cloud.version>  
+   	</properties>
+
+   	<dependencies>
+   		<dependency>  
+               <groupId>org.springframework.cloud</groupId>  
+               <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>  
+           </dependency>
+
+   		<dependency>
+   			<groupId>org.springframework.boot</groupId>
+   			<artifactId>spring-boot-starter-test</artifactId>
+   			<scope>test</scope>
+   		</dependency>
+   	</dependencies>
+   	
+   	<dependencyManagement>
+   		<dependencies>
+   			<dependency>
+   				<groupId>org.springframework.cloud</groupId>
+   				<artifactId>spring-cloud-dependencies</artifactId>
+   				<version>${spring-cloud.version}</version>
+   				<type>pom</type>
+   				<scope>import</scope>
+   			</dependency>
+   		</dependencies>
+   	</dependencyManagement>
+
+   	<build>
+   		<plugins>
+   			<plugin>
+   				<groupId>org.springframework.boot</groupId>
+   				<artifactId>spring-boot-maven-plugin</artifactId>
+   			</plugin>
+   		</plugins>
+   	</build>
+   </project>
+   ```
+
+3. SpringCloudProducerApplication.java：
+
+   ```java
+   @SpringBootApplication
+   @EnableDiscoveryClient
+   public class SpringCloudProducerApplication {
+
+   	public static void main(String[] args) {
+   		SpringApplication.run(SpringCloudProducerApplication.class, args);
+   	}
+   }
+   ```
+
+4. HelloController.java：
+
+   提供一个 hello 服务
+
+   ```java
+   @RestController
+   public class HelloController {
+       @RequestMapping(value = "/hello/{name}", method = RequestMethod.GET)
+       public String get(@PathVariable("name") String name) {
+           return "Hello " + name + "~";
+       }
+   }
+   ```
+
+5. application.properties：
+
+   ```properties
+   spring.application.name=spring-cloud-producer
+   server.port=8010
+
+   #注册中心地址，高可用的注册发现时这样子用
+   eureka.client.serviceUrl.defaultZone=http\://peer1\:8000/eureka/,http\://peer2\:8001/eureka/
+   ```
+
+6. 启动后，访问注册中心如 http://peer1:8000/，Instances currently registered with Eureka 下就可以看到 SPRING-CLOUD-PRODUCER。
+
+   访问 http://localhost:8010/hello/a 则可以看到返回了 Hello a~。
+
+​    
+
+### 服务消费者
+
+本例子使用 Feign 来实现了服务的消费。（Feign 整合了 Ribbon，所以具有客户端负载均衡的功能）
+
+1. pom.xml：
+
+   比上面 spring-cloud-producer 多一个 feign 依赖
+
+   ```xml
+   <dependency>  
+   	<groupId>org.springframework.cloud</groupId>  
+   	<artifactId>spring-cloud-starter-openfeign</artifactId>  
+   </dependency>
+   ```
+
+2. SpringCloudConsumerApplication.java：
+
+   ```java
+   @SpringBootApplication
+   @EnableDiscoveryClient
+   @EnableFeignClients
+   public class SpringCloudConsumerApplication {
+
+   	public static void main(String[] args) {
+   		SpringApplication.run(SpringCloudConsumerApplication.class, args);
+   	}
+   }
+   ```
+
+3. HelloClient.java：
+
+   ```java
+   @FeignClient(name= "spring-cloud-producer") // 服务提供者的spring.application.name
+   public interface HelloClient {
+       
+       @GetMapping(value = "/hello/{name}")
+       public String hello(@PathVariable(value = "name") String name);
+   }
+   ```
+
+4. HelloController.java：
+
+   ```java
+   @RestController
+   public class HelloController {
+   	
+   	@Autowired
+   	private HelloClient helloClient;
+
+   	@GetMapping("/hello/{name}")
+       public String index(@PathVariable("name") String name) {
+           return helloClient.hello(name);
+       }
+   }
+   ```
+
+5. application.properties：
+
+   ```properties
+   spring.application.name=spring-cloud-consumer
+   server.port=8020
+
+   eureka.client.serviceUrl.defaultZone=http\://peer1\:8000/eureka/,http\://peer2\:8001/eureka/
+   ```
+
+6. 启动后访问 http://localhost:8020/hello/a，就可以看到返回了 Hello a~，即调用成功。
+
+​    
+
