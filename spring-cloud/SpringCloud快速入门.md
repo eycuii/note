@@ -371,3 +371,201 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
 
 ​    
 
+## Hystrix 熔断器（/断路器）
+
+Feign 已经实现了 Hystrix ,所以不用再引 Hystrix 的 maven 依赖。在 spring-cloud-consumer 的基础上进行修改：
+
+1. application.properties 上增加：
+
+   ```properties
+   feign.hystrix.enabled=true
+   ```
+
+2.  HelloClientHystrix.java 回调类：
+
+   ```java
+   @Component
+   public class HelloClientHystrix implements HelloClient {
+
+   	@Override
+   	public String hello(String name) {
+   		return "hello(name) 服务失败！";
+   	}
+   }
+   ```
+
+3. HelloClient.java 的 @FeignClient 注解上设置 fallback：
+
+   ```java
+   @FeignClient(name= "spring-cloud-producer", fallback = HelloClientHystrix.class)
+   public interface HelloClient {
+   	
+       @GetMapping(value = "/hello")
+       public String hello(@RequestParam(value = "name") String name);
+   }
+   ```
+
+4. 启动项目后，关闭服务提供端，访问 http://localhost:8020/hello/a 会返回 “hello(name) 服务失败！”。
+
+​    
+
+## Zuul 路由
+
+Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有动态路由、监控、回退、安全等功能。
+
+1. pom.xml：
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+   	<modelVersion>4.0.0</modelVersion>
+
+   	<groupId>com.demo</groupId>
+   	<artifactId>spring-cloud-zuul</artifactId>
+   	<version>0.0.1-SNAPSHOT</version>
+   	<packaging>jar</packaging>
+
+   	<name>spring-cloud-zuul</name>
+   	<description>Demo project for Spring Boot</description>
+
+   	<parent>
+   		<groupId>org.springframework.boot</groupId>
+   		<artifactId>spring-boot-starter-parent</artifactId>
+   		<version>2.0.0.RELEASE</version>
+   		<relativePath/> <!-- lookup parent from repository -->
+   	</parent>
+
+   	<properties>
+   		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+   		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+   		<java.version>1.8</java.version>
+           <spring-cloud.version>Finchley.M8</spring-cloud.version>
+   	</properties>
+
+   	<dependencies>
+   		<dependency>  
+               <groupId>org.springframework.cloud</groupId>  
+               <artifactId>spring-cloud-starter-netflix-eureka-server</artifactId>  
+           </dependency>  
+           <dependency>  
+               <groupId>org.springframework.cloud</groupId>  
+               <artifactId>spring-cloud-starter-netflix-zuul</artifactId>  
+           </dependency>
+
+   		<dependency>
+   			<groupId>org.springframework.boot</groupId>
+   			<artifactId>spring-boot-starter-test</artifactId>
+   			<scope>test</scope>
+   		</dependency>
+   	</dependencies>
+   	
+   	<dependencyManagement>
+   		<dependencies>
+   			<dependency>
+   				<groupId>org.springframework.cloud</groupId>
+   				<artifactId>spring-cloud-dependencies</artifactId>
+   				<version>${spring-cloud.version}</version>
+   				<type>pom</type>
+   				<scope>import</scope>
+   			</dependency>
+   		</dependencies>
+   	</dependencyManagement>
+
+   	<build>
+   		<plugins>
+   			<plugin>
+   				<groupId>org.springframework.boot</groupId>
+   				<artifactId>spring-boot-maven-plugin</artifactId>
+   			</plugin>
+   		</plugins>
+   	</build>
+   </project>
+   ```
+
+2. application.properties：
+
+   ```properties
+   spring.application.name=spring-cloud-zuul
+   server.port=8030
+
+   eureka.client.serviceUrl.defaultZone=http\://peer1\:8000/eureka/,http\://peer2\:8001/eureka/
+   ```
+
+3. SpringCloudZuulApplication.java：
+
+   ```java
+   @SpringBootApplication
+   @EnableZuulProxy // 该注解整合了@EnableDiscoveryClient
+   public class SpringCloudZuulApplication {
+
+   	public static void main(String[] args) {
+   		SpringApplication.run(SpringCloudZuulApplication.class, args);
+   	}
+   }
+   ```
+
+4. 启动后访问 http://localhost:8030/spring-cloud-producer/hello/aa（默认为 http://GATEWAY:GATEWAY_PORT/想要访问的Eureka服务id的小写），会看到 “Hello aa~”，代表成功转发到了  http://localhost:8010/hello/aa。
+
+### 过滤器
+
+在上面例子上增加过滤功能：
+
+1. AccessFilter.java 自定义过滤器：
+
+   ```java
+   @Component
+   public class AccessFilter extends ZuulFilter  {
+
+       private static Logger log = LoggerFactory.getLogger(AccessFilter.class);
+
+       // 过滤器的类型，它决定过滤器在请求的哪个生命周期中执行。
+       // 这里定义为pre，代表会在请求被路由之前执行。
+       @Override
+       public String filterType() {
+           return "pre";
+       }
+
+       // 过滤器的执行顺序。当请求在一个阶段中存在多个过滤器时，需要根据该方法返回的值来依次执行。
+       @Override
+       public int filterOrder() {
+           return 0;
+       }
+
+       // 判断该过滤器是否需要被执行。
+       // 这里我们直接返回了true，因此该过滤器对所有请求都会生效。实际运用中我们可以利用该函数来指定过滤器的有效范围。
+       @Override
+       public boolean shouldFilter() {
+           return true;
+       }
+
+       // 过滤器的具体逻辑。
+       @Override
+       public Object run() {
+           RequestContext ctx = RequestContext.getCurrentContext();
+           HttpServletRequest request = ctx.getRequest();
+
+         	log.info("send {} request to {}", 
+         			request.getMethod(), request.getRequestURL().toString());
+
+           Object accessToken = request.getParameter("accessToken");
+           if(accessToken == null) {
+               log.warn("access token is empty");
+               ctx.setSendZuulResponse(false); // 过滤请求
+               ctx.setResponseStatusCode(401); // 返回的错误码
+               ctx.getResponse().setCharacterEncoding("GBK");  
+               try {  
+                   ctx.getResponse().getWriter().write("缺少 accessToken!");  
+               } catch (Exception e) {
+               	e.printStackTrace();
+               }
+               return null;
+           }
+           log.info("access token ok");
+           return null;
+       }
+   }
+   ```
+
+2. 启动项目，访问 http://localhost:8030/spring-cloud-producer/hello/aa 会返回 “缺少 accessToken!”，如果加 accessToken参数，如 http://localhost:8030/spring-cloud-producer/hello/aa?accessToken=123，就可以成功返回数据。
+
