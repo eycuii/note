@@ -125,3 +125,81 @@ JDK：1.8
 
 4. 启动后，访问 http://localhost:8040/producer/hello/aa 被转发到 http://localhost:8010/hello/aa，http://localhost:8040/baidu 会转发到 http://baidu.com 。
 
+
+​    
+
+## 过滤器
+
+Spring Cloud Gateway 提供了很多过滤器（GatewayFilterFactory 实现类），如添加请求头的过滤器、熔断过滤器、请求限流过滤器、重定向过滤器等。
+
+上面的例子用的就是重写 url 的过滤器，也可以使用设置路径过滤器来实现：
+
+```yaml
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: spring-cloud-producer
+        uri: http://localhost:8010
+        predicates:
+        - Path=/producer/hello/{segment}
+        filters:
+        - SetPath=/hello/{segment} # 设置路径过滤器，会将/producer/hello/a转发为/hello/a
+```
+
+### GatewayFilterFactory 熔断过滤器
+
+1. pom.xml：在上面案例的基础上增加 hystrix 依赖
+
+   ```xml
+   <dependency>
+       <groupId>org.springframework.cloud</groupId>
+       <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+   </dependency>
+   ```
+
+2. application.yml：
+
+   ```yaml
+   server:
+     port: 8040
+   spring:
+     application:
+       name: spring-cloud-gateway
+   spring:
+     cloud:
+       gateway:
+         routes:
+         - id: spring-cloud-producer
+           uri: http://localhost:8010/hello/aa
+           predicates:
+           - Path=/hello/**
+           filters:
+           - name: Hystrix
+             args:
+                 name: fallbackcmd
+                 fallbackUri: forward:/hi/bb #失败时转向localhost:8040/hi/bb
+   ```
+
+3. HiController.java：
+
+   ```java
+   @RestController
+   public class HiController {
+
+       @GetMapping("/hi/{name}")
+       public String hi(@PathVariable("name") String name) {
+           return "Hi " + name + "~";
+       }
+   }
+   ```
+
+4. 启动后，把 8010 端口上的给关掉，访问 http://localhost:8040/hello/aa 时会发现返回的是 “Hi bb~”。
+
+更多的可以看官方文档：http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_gateway-route-filters.html#_hystrix_gatewayfilter_factory
+
+参考：
+
+http://www.iocoder.cn/categories/Spring-Cloud-Gateway/
+
+http://xujin.org/sc/sc-gw-fy/
