@@ -371,7 +371,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
 
 ​    
 
-## Hystrix 熔断器（/断路器）
+## Hystrix 熔断器（/ 断路器）
 
 Feign 已经实现了 Hystrix ,所以不用再引 Hystrix 的 maven 依赖。在 spring-cloud-consumer 的基础上进行修改：
 
@@ -505,7 +505,18 @@ Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有动态路由、监�
    }
    ```
 
-4. 启动后访问 http://localhost:8030/spring-cloud-producer/hello/aa（默认为 http://GATEWAY:GATEWAY_PORT/想要访问的Eureka服务id的小写），会看到 “Hello aa~”，代表成功转发到了  http://localhost:8010/hello/aa。
+4. 因为已经配置了 Eureka 注册中心，启动后访问 http://localhost:8030/spring-cloud-producer/hello/aa（默认就是 http://GATEWAY:GATEWAY_PORT/想要访问的Eureka服务id的小写），就会看到 “Hello aa~”，代表成功转发到了  http://localhost:8010/hello/aa。
+
+5. 如果想配置路由，可以在 application.properties 里写：
+
+   ```properties
+   zuul.routes.myproducer.path=/producer/**
+   zuul.routes.myproducer.serviceId=spring-cloud-producer
+   ```
+
+   重启后，访问 http://localhost:8030/producer/hello/aa?accessToken=123 也可以看到 “Hello aa~” 了。
+
+​    
 
 ### 过滤器
 
@@ -568,4 +579,74 @@ Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有动态路由、监�
    ```
 
 2. 启动项目，访问 http://localhost:8030/spring-cloud-producer/hello/aa 会返回 “缺少 accessToken!”，如果加 accessToken参数，如 http://localhost:8030/spring-cloud-producer/hello/aa?accessToken=123，就可以成功返回数据。
+
+
+​    
+
+### 路由熔断
+
+1. ProducerFallback.java：
+
+   ```java
+   @Component
+   public class ProducerFallback implements FallbackProvider {
+
+       //指定要处理的 service。
+       @Override
+       public String getRoute() {
+           return "spring-cloud-producer";
+       }
+
+       public ClientHttpResponse fallbackResponse() {
+           return new ClientHttpResponse() {
+               @Override
+               public HttpStatus getStatusCode() throws IOException {
+                   return HttpStatus.OK;
+               }
+
+               @Override
+               public int getRawStatusCode() throws IOException {
+                   return 200;
+               }
+
+               @Override
+               public String getStatusText() throws IOException {
+                   return "OK";
+               }
+
+               @Override
+               public void close() {}
+
+               @Override
+               public InputStream getBody() throws IOException {
+                   return new ByteArrayInputStream("The service is unavailable.".getBytes());
+               }
+
+               @Override
+               public HttpHeaders getHeaders() {
+                   HttpHeaders headers = new HttpHeaders();
+                   headers.setContentType(MediaType.APPLICATION_JSON);
+                   return headers;
+               }
+           };
+       }
+
+       @Override
+       public ClientHttpResponse fallbackResponse(String route, Throwable cause) {
+           if (cause != null && cause.getCause() != null) {
+               String reason = cause.getCause().getMessage();
+               System.out.println(reason);
+           }
+           return fallbackResponse();
+       }
+   }
+   ```
+
+2. 复制 spring-cloud-producer，修改项目名为 spring-cloud-producer-2，并修改端口为 8011。
+
+3. 启动两个 producer 和 zuul 后，关掉其中一个 producer，然后访问 http://localhost:8030/producer/hello/aa?accessToken=123 可以发现有时候会返回 “The service is unavailable.”。
+
+​    
+
+### 路由重试
 
