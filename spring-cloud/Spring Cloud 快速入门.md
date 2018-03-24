@@ -14,7 +14,7 @@ JDK：1.8
 
 ## 官方文档
 
-http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.html
+http://cloud.spring.io/spring-cloud-static/Finchley.M8
 
 ​    
 
@@ -140,7 +140,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
    spring.application.name=spring-cloud-eureka
    server.port=8000
    eureka.instance.hostname=peer1
-
+# 有多个时用“,”隔开
    eureka.client.serviceUrl.defaultZone=http://peer2\:8001/eureka/
    ```
 
@@ -173,7 +173,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
 
 4. 运行 jar 包
 
-   分别按 application-peer1.properties 和 application.peer2.properties 配置文件启动项目：
+   分别按 application-peer1.properties 和 application.peer2.properties 配置启动项目：
 
    ```shell
    java -jar spring-cloud-eureka-server-0.0.1-SNAPSHOT.jar --spring.profiles.active=peer1
@@ -304,7 +304,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
 
 ### 服务消费者
 
-本例子使用 Feign 来实现了服务的消费。（Feign 整合了 Ribbon，所以具有客户端负载均衡的功能）
+本例子使用 Feign 来实现了服务的消费。（Feign 整合了 Ribbon，所以具有负载均衡的功能）
 
 1. pom.xml：
 
@@ -373,6 +373,30 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8/multi/multi_spring-cloud.
 
 ## Hystrix 熔断器（/ 断路器）
 
+### 特性
+
+Hystrix 具有断路、降级、隔离等特性。
+
+#### 断路机制
+
+Hystrix的断路器就像家庭电路中的保险丝，一旦后端服务不可用，断路器会直接切断请求链, 避免发送大量无效请求影响系统吞吐量，并且断路器有自我检测并恢复的能力：
+
+![pringcloud-hystri](../img/springcloud-hystrix.png)
+
+当请求后端服务失败数量超过一定比例(默认50%)时，断路器会切换到开路状态(Open)。这时所有请求会直接失败而不会发送到后端服务。断路器保持在开路状态一段时间后(默认5秒)，自动切换到半开路状态(HALF-OPEN)。这时会判断下一次请求的返回情况，如果请求成功，断路器切回闭路状态(CLOSED)，否则重新切换到开路状态(OPEN)。
+
+#### fallback 降级
+
+比如对于查询操作，可以实现一个 fallback 方法，当请求后端服务出现异常的时候，可以使用 fallback 方法指定返回的值。fallback 方法的返回值可以是默认值或者从缓存中取的。
+
+#### 隔离
+
+在 Hystrix 中, 主要通过线程池来实现线程隔离. 通常在使用的时候我们会根据调用的远程服务划分出多个线程池。例如调用产品服务的Command放入A线程池，调用账户服务的Command放入B线程池。这样做的主要优点是运行环境被隔离开了，就算调用服务的代码存在bug或者由于其他原因导致自己所在线程池被耗尽时，不会对系统的其他服务造成影响。（但是带来的代价就是维护多个线程池会对系统带来额外的性能开销。如果是对性能有严格要求而且确信自己调用服务的客户端代码不会出问题的话，可以使用Hystrix的信号量(Semaphores)来隔离资源。）
+
+隔离、服务降级在使用时候都是一体化实现的。
+
+### 用例
+
 Feign 已经实现了 Hystrix ,所以不用再引 Hystrix 的 maven 依赖。在 spring-cloud-consumer 的基础上进行修改：
 
 1. application.properties 上增加：
@@ -411,7 +435,7 @@ Feign 已经实现了 Hystrix ,所以不用再引 Hystrix 的 maven 依赖。在
 
 ## Zuul 路由
 
-Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有动态路由、监控、回退、安全等功能。
+Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有路由、降级、重试等功能。
 
 1. pom.xml：
 
@@ -530,8 +554,13 @@ Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有动态路由、监�
 
        private static Logger log = LoggerFactory.getLogger(AccessFilter.class);
 
-       // 过滤器的类型，它决定过滤器在请求的哪个生命周期中执行。
+       // 过滤器的类型，它决定过滤器在请求的哪个生命周期中执行。Zuul在各阶段都有自带的过滤器。
        // 这里定义为pre，代表会在请求被路由之前执行。
+       // Standard types in Zuul are "pre" for pre-routing filtering,
+       // "route" for routing to an origin, 
+       // "post" for post-routing filters, 
+       // "error" for error handling.
+       // We also support a "static" type for static responses see  StaticResponseFilter.
        @Override
        public String filterType() {
            return "pre";
@@ -591,7 +620,7 @@ Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有动态路由、监�
    @Component
    public class ProducerFallback implements FallbackProvider {
 
-       //指定要处理的 service。
+       //指定要处理的服务
        @Override
        public String getRoute() {
            return "spring-cloud-producer";
@@ -646,7 +675,5 @@ Spring Cloud 中使用 Zuul 作为 API Gateway。Zuul 具有动态路由、监�
 
 3. 启动两个 producer 和 zuul 后，关掉其中一个 producer，然后访问 http://localhost:8030/producer/hello/aa?accessToken=123 可以发现有时候会返回 “The service is unavailable.”。
 
-​    
 
-### 路由重试
 

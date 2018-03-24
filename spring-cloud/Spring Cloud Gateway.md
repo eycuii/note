@@ -10,7 +10,13 @@ Spring Boot：2.0.0.RELEASE
 
 JDK：1.8
 
+​    
 
+## 介绍
+
+是Spring官方基于Spring 5.0，Spring Boot 2.0和Project Reactor等技术开发的网关，Spring Cloud Gateway旨在为微服务架构提供一种简单而有效的统一的API路由管理方式。Spring Cloud Gateway作为Spring Cloud生态系中的网关，目标是替代Netflix ZUUL，其不仅提供统一的路由方式，并且基于Filter链的方式提供了网关基本的功能，例如：安全，监控/埋点，和限流等。
+
+与 Zuul 1 比较：http://www.itmuch.com/spring-cloud-sum/performance-zuul-and-gateway-linkerd/
 
 ​    
 

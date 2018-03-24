@@ -10,7 +10,7 @@ Spring Boot：2.0.0.RELEASE
 
 JDK：1.8
 
-服务器上的 kafka：1.0.1
+kafka：1.0.1
 
 ​    
 
