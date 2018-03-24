@@ -140,6 +140,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8
    spring.application.name=spring-cloud-eureka
    server.port=8000
    eureka.instance.hostname=peer1
+   ```
 # 有多个时用“,”隔开
    eureka.client.serviceUrl.defaultZone=http://peer2\:8001/eureka/
    ```
@@ -304,7 +305,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8
 
 ### 服务消费者
 
-本例子使用 Feign 来实现了服务的消费。（Feign 整合了 Ribbon，所以具有负载均衡的功能）
+服务的消费可通过 ribbon 或 feign 来实现。本例子使用 Feign 来实现了服务的消费。（Feign 整合了 Ribbon，所以具有负载均衡的功能，且使用更方便）
 
 1. pom.xml：
 
