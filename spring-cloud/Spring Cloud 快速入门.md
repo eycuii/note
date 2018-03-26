@@ -140,11 +140,10 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8
    spring.application.name=spring-cloud-eureka
    server.port=8000
    eureka.instance.hostname=peer1
-   ```
-# 有多个时用“,”隔开
+
+   # 有多个时用“,”隔开
    eureka.client.serviceUrl.defaultZone=http://peer2\:8001/eureka/
    ```
-
    application-peer2.properties：
 
    ```properties
@@ -154,6 +153,7 @@ http://cloud.spring.io/spring-cloud-static/Finchley.M8
 
    eureka.client.serviceUrl.defaultZone=http\://peer1\:8000/eureka/
    ```
+
 
 2. hosts 上添加：
 
