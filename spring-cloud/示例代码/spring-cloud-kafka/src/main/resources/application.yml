@@ -1,0 +1,17 @@
+server:
+  port: 8050
+spring:
+  application:
+    name: spring-cloud-kafka
+  cloud:
+     instance-count: 1
+     instance-index: 0
+     stream:
+        kafka:
+          binder:
+            brokers: 140.143.224.183:9092
+            zk-nodes: 140.143.224.183:2182
+        bindings:
+          output:
+            destination: test
+            content-type: text/plain

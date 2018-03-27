@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.demo.springboot.dao.IUserDao">
+    <resultMap id="BaseResultMap" type="com.demo.springboot.entities.User">
+        <result column="ID" property="id" javaType="int" jdbcType="NUMERIC"/>
+        <result column="USER_NAME" property="userName" javaType="String" jdbcType="NVARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        ID, USER_NAME
+    </sql>
+
+    <select id="getUserById" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM USER
+        WHERE ID = #{id,jdbcType=NUMERIC}
+    </select>
+
+    <update id="update">
+        UPDATE 
+        	USER T
+        SET 
+        	T.USER_NAME = #{userName, jdbcType=NVARCHAR}
+        WHERE 
+        	T.ID = #{id, jdbcType=NUMERIC}
+    </update>
+</mapper>

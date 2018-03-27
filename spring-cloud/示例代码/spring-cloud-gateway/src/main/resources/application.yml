@@ -1,0 +1,22 @@
+server:
+  port: 8040
+spring:
+  application:
+    name: spring-cloud-gateway
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: spring-cloud-producer
+        uri: http://localhost:8010/hello/aa
+        predicates:
+        - Path=/hello/**
+        filters:
+#        - SetPath=/hello/{segment}
+#        - RewritePath=/producer/(?<segment>.*), /$\{segment}
+#        - RequestRateLimiter=10, 20, \#{@principalNameKeyResolver}
+#        - Hystrix=myCommandName
+        - name: Hystrix
+          args:
+              name: fallbackcmd
+              fallbackUri: forward:/hi/bb

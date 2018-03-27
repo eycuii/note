@@ -1,0 +1,21 @@
+server:
+  port: 8060
+spring:
+  application:
+    name: spring-cloud-kafka-consumer
+  cloud:
+     instance-count: 1
+     instance-index: 0
+     stream:
+        kafka:
+          binder:
+            brokers: 140.143.224.183:9092
+            zk-nodes: 140.143.224.183:2182
+        bindings:
+          input:
+            destination: springcloud
+            group: s1
+            consumer:
+              autoCommitOffset: false
+              concurrency: 1
+              partitioned: false
