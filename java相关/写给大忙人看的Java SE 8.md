@@ -322,9 +322,9 @@ ZonedDateTime 类似于 java.util.GregorianCalendar。
 
 ​    
 
-## 并发增强
+## 第6章 并发增强
 
-原子值
+### 原子值
 
 在 java 8 之前：
 
@@ -448,3 +448,72 @@ floorMod、foorDiv：解决整型余数的问题。比如，n%2，如果是负�
 
 ### 集合
 
+Collection 的 removelf 方法
+
+List 的 replaceAll、sort 方法
+
+Map 的 compute 等方法
+
+Iterator 的 forEachRemaining 方法
+
+Comparator 的 comparing、thenComparing 方法
+
+### 使用文件
+
+提供 Base64 编码/解码的方法。
+
+### 注解
+
+可重复注解；可用于类型的注解（比如 @NonNull 可以写在任何地方（除了class类））
+
+反射可以得到参数名称
+
+### 其他一些细微的改进
+
+#### Null 检查
+
+Objects 类增加静态的 isNull、nonNull 方法。
+
+stream.anyMatch(Objects::isNull)：检查流是否有 null 值。
+
+stream.filter(Objects::nonNull)：获取所有非 null 的对象。
+
+#### 延迟消息
+
+java.util.Logger 新增了 log、logp、servere、warning、info、config、fine、finer、finest 等方法，并且支持了延迟构造信息。
+
+Objects 类的 requireNonNull 增加了延迟计算消息字符串的版本：
+
+this.directions = Objects.requireNonNull(directions, () -> "directions must not be null");
+
+#### 正则表达式
+
+​    
+
+​    
+
+## 第9章 你可能错过的 Java 7 特性
+
+### 异常处理改进
+
+对所有实现 AutoCloseable 接口的对象使用 try-with-resources 语句
+
+注：同时捕获多个异常时，异常变量 ex 会被隐式设置为 final。
+
+### 使用文件
+
+用 Path 接口取代 File 类。
+
+### 实现 equals、hashCode、compareTo 方法
+
+Objects.equals(a, b)：如果 a、b 都是 null，则返回 true；如果只有 a 为 null，则返回 false；其他情况返回 a.equals(b)。
+
+Objects.hashCode：如果是 null，返回 0。
+
+Objects.hash(a, b)：组合哈希码
+
+Objects.toString(obj, str)：obj 对象为 null 时，返回 str。
+
+Integer.compare(a, b)：不用考虑溢出问题
+
+### 其他改动
