@@ -8,6 +8,8 @@ Effective Java（第3版）
 
 深入理解Java虚拟机（第2版）
 
+Head First设计模式
+
 ​    
 
 TODO：
@@ -15,8 +17,6 @@ TODO：
 总结
 
 jdk源码
-
-设计模式
 
 mysql
 
