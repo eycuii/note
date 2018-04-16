@@ -11,7 +11,7 @@
 主题 Subject 接口：
 
 ```java
-public interface Subject {
+public interface Subject { // 任何Subject的实现类都可以成为被监听的对象
 	public void registerObserver(Observer o); // 订阅
 	public void removeObserver(Observer o); // 取消订阅
 	public void notifyObservers(); // Subject实现类里需要维护观察者list
