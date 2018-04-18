@@ -24,7 +24,9 @@ mysql
 
 spring
 
-网络
+网络、socket
+
+操作系统、处理器、内核空间、进程、线程
 
 netty
 
