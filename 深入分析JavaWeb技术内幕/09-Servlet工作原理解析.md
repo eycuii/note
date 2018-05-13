@@ -147,3 +147,6 @@ web.xml 加载时，首先会检查 url-pattern 配置是否符合规则（通�
 Servlet 的匹配规则在 Mapper.internalMapWrapper 方法中定义。如果 Servlet 有多个 url-pattern，其匹配顺序就是：先精确匹配，然后最长路径匹配，最后根据后缀进行匹配。一次请求只会成功匹配一个 Servlet。
 
 Filter 的匹配规则在 ApplicationFilterFactory.matchFiltersURL 方法中定义。与 Servlet 的匹配原则不同：只要匹配成功，这些 Filter 都会在请求链上被调用。
+
+
+
