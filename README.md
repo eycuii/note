@@ -1,14 +1,16 @@
-Java编程思想（第4版）
+Java 编程思想（第4版）
 
-Java并发编程实战
+Java 并发编程实战
 
-Java并发编程的艺术
+Java 并发编程的艺术
 
 Effective Java（第3版）
 
-深入理解Java虚拟机（第2版）
+深入理解 Java 虚拟机（第2版）
 
-Head First设计模式
+Head First 设计模式
+
+深入分析 Java Web 技术内幕（修订版）
 
 ​    
 
