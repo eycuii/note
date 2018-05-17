@@ -63,7 +63,18 @@ public class Test {
 }  
 ```
 
+Java帝国之动态代理：https://mp.weixin.qq.com/s?__biz=MzAxOTc0NzExNg==&mid=2665513926&idx=1&sn=1c43c5557ba18fed34f3d68bfed6b8bd&chksm=80d67b85b7a1f2930ede2803d6b08925474090f4127eefbb267e647dff11793d380e09f222a8#rd
+
 ​    
 
 cglib 动态代理
 
+动态代理jdk和cglib的区别：https://www.cnblogs.com/3chi/p/6911889.html
+
+​    
+
+**区别**
+
+jdk、cglib 都会生成代理类来实现动态代理，其中 jdk 是实现 target 的接口的方式，而 cglib 是继承 target 的方式。
+
+所以 jdk 方式需要 target 实现某个接口，cglib 方式时 target 类不能是 final 的（否则不能继承）。
