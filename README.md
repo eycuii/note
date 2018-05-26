@@ -12,6 +12,8 @@ Head First 设计模式
 
 深入分析 Java Web 技术内幕（修订版）
 
+代码整洁之道
+
 ​    
 
 TODO：
@@ -19,8 +21,6 @@ TODO：
 总结
 
 jdk源码、动态代理、tomcat的ClassLoader、热部署
-
-代码整洁之道
 
 mysql
 
