@@ -95,8 +95,6 @@ D：如果leader服务器挂了，需要一个端口来重新进行选举，选�
 
 java操作zookeeper
 
-Curator
-
 create时如果已存在，会报错。
 
 create对get相比性能不高，所以最好先get后再尝试create
@@ -107,3 +105,42 @@ delete可以检查版本号。版本号传-1表示不检查，直接删
 
 delete方法能指定回调方法
 
+​    
+
+watch事件：一次性触发的。当watch监视的数据发生变化时，通知设置了该watch的client，即watcher。
+
+watcher监听数据的事件类型：
+
+（节点相关的）
+
+EventType.NodeCreated
+
+EventType.NodeDataChanged
+
+EventType.NodeChildrenChanged
+
+EventType.NodeDeleted
+
+状态类型：（客户端实例相关的）
+
+KeeperState.Disconnected
+
+KeeperState.SyncConnected
+
+KeeperState.AuthFailed
+
+KeeperState.Expired
+
+​    
+
+zkClient：不用每次去弄watcher；返回更多数据；可直接传Object对象
+
+Curator：
+
+可以递归创建节点；
+
+性能好（用cache，而不是重复注册的方式）；
+
+监听时，如果watcher重启了会重新获取到所有的事件；
+
+提供了分布式锁、原子类、barrier等；
