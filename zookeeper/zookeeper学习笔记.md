@@ -4,10 +4,10 @@ zab，cas，paxos
 
 ```shell
 # 解压到/usr/local
-tar -zxvf zookeeper-3.4.5.tar.gz -C /usr/local
+tar -zxvf zookeeper-3.4.12.tar.gz -C /usr/local
 # 重命名
 cd /usr/local
-mv zookeeper-3.4.5/ zookeeper
+mv zookeeper-3.4.12/ zookeeper
 # 设置环境变量
 vim /etc/profile
 # vim进入后，顶部加：export ZOOKEEPER_HOME=/usr/local/zookeeper
@@ -42,15 +42,15 @@ zkCli.sh
 ls /
 ls /zookepper
 # 创建并赋值
-create /bhz hadoop
+create /hello world
 # 获取
-get /bhz
+get /hello
 # 设值
-set /bhz baihezhuo
+set /hello world~
 # 递归删除节点
-rmr /path
+rmr /hello
 # 删除指定的某个节点
-delete /path/child
+delete /hello/hi
 ```
 
 ​    
