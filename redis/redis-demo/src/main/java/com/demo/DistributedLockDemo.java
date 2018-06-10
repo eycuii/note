@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 
 public class DistributedLockDemo {
 
-    private static final String redisAddress = "redis://123123@140.143.224.183:6379";
+    private static final String redisAddress = "redis://xxx";
     private static final String lockKey = "countLock";
 
     // 如果不存在时获取锁，并设置过期时间（毫秒）
