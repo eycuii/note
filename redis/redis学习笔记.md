@@ -23,12 +23,17 @@ make
 
 ```shell
 make install
+# make MALLOC=libc
 ```
 
 **启动：**（redis 默认使用 6379 端口）
 
 ```shell
 redis-server
+# 后台启动方式：
+./redis-server &
+# 关闭
+./redis-cli shutdown
 ```
 
 **客户端连接redis：**
@@ -37,6 +42,18 @@ redis-server
 redis-cli
 set name abc
 get name
+```
+
+**设置密码：**
+
+不用重启redis
+
+```shell
+./redis-cli
+config set requirepass 123123
+config get requirepass # 会被拒绝
+auth 123123 # 认证
+config get requirepass
 ```
 
 ​    
