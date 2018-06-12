@@ -36,6 +36,7 @@ https://docs.spring.io/spring-boot/docs/current/reference/html/
 
    ```java
    @SpringBootApplication
+   @MapperScan("com.demo.springboot.dao")
    public class SpringbootApplication {
    	public static void main(String[] args) {
    		SpringApplication.run(SpringbootApplication.class, args);
