@@ -1,4 +1,4 @@
-### 分布式锁失效
+### 分布式锁丢失
 
 项目中 mybatis 的二级缓存用了 redis，具体实现类为 RedisCache。
 
