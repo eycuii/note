@@ -14,9 +14,9 @@ RedisCache 中我在刷新缓存（clear）时直接清掉了 redis 里面的所
 
 #### 原因
 
-原因就是 orderWithLock 方法上加了事务：
+原因就是 orderWithLock 方法上加了事务，在事务内进行了对锁的获取和释放：
 
-mybatis 二级缓存在 getObject 时如果发现没有，会从数据库查询，然后提交事务时会 putObject 更新缓存。而这里获取商品信息时的 putObject，是在释放锁之后 orderWithLock 事务结束时进行的，所以出现了脏读。
+mybatis 二级缓存在 getObject 时如果发现没有，会从数据库查询，然后提交事务时会 putObject 更新缓存和数据库。而这里获取商品信息时的 putObject，是在释放锁之后 orderWithLock 事务结束时进行的，所以其他线程在加锁成功后获取商品信息时出现了脏读。
 
 获取商品信息部分的具体流程、细节：
 
@@ -26,7 +26,7 @@ mybatis 二级缓存在 getObject 时如果发现没有，会从数据库查询�
 4. 线程 1 释放锁
 5. 线程 1 的 orderWithLock 还没结束，此时线程 2 获取锁
 6. 线程 2 获取商品信息。RedisCache.getObject 发现没有，所以直接从数据库获取（脏读）
-7. 线程 1 的 orderWithLock 方法结束，RedisCache.putObject 更新缓存（这里因为还有修改商品，所以还会进行 clear 刷新缓存）。
+7. 线程 1 的 orderWithLock 方法结束，RedisCache.putObject 更新缓存及数据库（这里因为还有修改商品，所以还会进行 clear 刷新缓存）。
 
 #### 初步解决方案
 
