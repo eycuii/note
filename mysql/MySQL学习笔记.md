@@ -75,9 +75,281 @@ MySQL 官网目前已经有了 8.0.3 ，但还是 RC ，没有 GA 版本，所�
   exit
   ```
 
+​    
+
+### Linux（CentOS 7） yum方式
+
+1. 安装配置 MySQL 官网的 yum 源
+
+   ```shell
+   # 下载yum源的rpm包  
+   wget https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm  
+   # 安装rpm包  
+   rpm -Uvh mysql57-community-release-el7-11.noarch.rpm  
+     
+   # 检查是否有mysql源  
+   [root@VM_61_120_centos local]# yum repolist enabled | grep mysql  
+   mysql-connectors-community/x86_64    MySQL Connectors Community               51  
+   mysql-tools-community/x86_64         MySQL Tools Community                    63  
+   mysql57-community/x86_64             MySQL 5.7 Community Server              267  
+   ```
+
+2. yum 安装 MySQL 5.7
+
+   ```shell
+   [root@VM_61_120_centos local]# yum install mysql-community-server  
+   Loaded plugins: fastestmirror, langpacks  
+   Loading mirror speeds from cached hostfile  
+   Resolving Dependencies  
+   --> Running transaction check  
+   ---> Package mysql-community-server.x86_64 0:5.7.22-1.el7 will be installed  
+   --> Processing Dependency: mysql-community-common(x86-64) = 5.7.22-1.el7 for package: mysql-community-server-5.7.22-1.el7.x86_64  
+   --> Processing Dependency: mysql-community-client(x86-64) >= 5.7.9 for package: mysql-community-server-5.7.22-1.el7.x86_64  
+   --> Running transaction check  
+   ---> Package mysql-community-client.x86_64 0:5.7.22-1.el7 will be installed  
+   --> Processing Dependency: mysql-community-libs(x86-64) >= 5.7.9 for package: mysql-community-client-5.7.22-1.el7.x86_64  
+   ---> Package mysql-community-common.x86_64 0:5.7.22-1.el7 will be installed  
+   --> Running transaction check  
+   ---> Package mariadb-libs.x86_64 1:5.5.56-2.el7 will be obsoleted  
+   --> Processing Dependency: libmysqlclient.so.18()(64bit) for package: 2:postfix-2.10.1-6.el7.x86_64  
+   --> Processing Dependency: libmysqlclient.so.18(libmysqlclient_18)(64bit) for package: 2:postfix-2.10.1-6.el7.x86_64  
+   ---> Package mysql-community-libs.x86_64 0:5.7.22-1.el7 will be obsoleting  
+   --> Running transaction check  
+   ---> Package mysql-community-libs-compat.x86_64 0:5.7.22-1.el7 will be obsoleting  
+   --> Finished Dependency Resolution  
+     
+   Dependencies Resolved  
+     
+   ==============================================================================================================  
+    Package                              Arch            Version                Repository                  Size  
+   ==============================================================================================================  
+   Installing:  
+    mysql-community-libs                 x86_64          5.7.22-1.el7           mysql57-community          2.1 M  
+        replacing  mariadb-libs.x86_64 1:5.5.56-2.el7  
+    mysql-community-libs-compat          x86_64          5.7.22-1.el7           mysql57-community          2.0 M  
+        replacing  mariadb-libs.x86_64 1:5.5.56-2.el7  
+    mysql-community-server               x86_64          5.7.22-1.el7           mysql57-community          165 M  
+   Installing for dependencies:  
+    mysql-community-client               x86_64          5.7.22-1.el7           mysql57-community           24 M  
+    mysql-community-common               x86_64          5.7.22-1.el7           mysql57-community          274 k  
+     
+   Transaction Summary  
+   ==============================================================================================================  
+   Install  3 Packages (+2 Dependent packages)  
+     
+   Total download size: 193 M  
+   Is this ok [y/d/N]: y  
+   Downloading packages:  
+   warning: /var/cache/yum/x86_64/7/mysql57-community/packages/mysql-community-common-5.7.22-1.el7.x86_64.rpm: Header V3 DSA/SHA1 Signature, key ID 5072e1f5: NOKEY  
+   Public key for mysql-community-common-5.7.22-1.el7.x86_64.rpm is not installed  
+   (1/5): mysql-community-common-5.7.22-1.el7.x86_64.rpm                                  | 274 kB  00:00:02  
+   (2/5): mysql-community-client-5.7.22-1.el7.x86_64.rpm                                  |  24 MB  00:00:10  
+   (3/5): mysql-community-libs-5.7.22-1.el7.x86_64.rpm                                    | 2.1 MB  00:00:45  
+   (4/5): mysql-community-libs-compat-5.7.22-1.el7.x86_64.rpm                             | 2.0 MB  00:00:40  
+   (5/5): mysql-community-server-5.7.22-1.el7.x86_64.rpm                                  | 165 MB  00:09:53  
+   --------------------------------------------------------------------------------------------------------------  
+   Total                                                                         308 kB/s | 193 MB  00:10:42  
+   Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql  
+   Importing GPG key 0x5072E1F5:  
+    Userid     : "MySQL Release Engineering <mysql-build@oss.oracle.com>"  
+    Fingerprint: a4a9 4068 76fc bd3c 4567 70c8 8c71 8d3b 5072 e1f5  
+    Package    : mysql57-community-release-el7-11.noarch (installed)  
+    From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-mysql  
+   Is this ok [y/N]: y  
+   Running transaction check  
+   Running transaction test  
+   Transaction test succeeded  
+   Running transaction  
+   Warning: RPMDB altered outside of yum.  
+     Installing : mysql-community-common-5.7.22-1.el7.x86_64                                                 1/6  
+     Installing : mysql-community-libs-5.7.22-1.el7.x86_64                                                   2/6  
+     Installing : mysql-community-client-5.7.22-1.el7.x86_64                                                 3/6  
+     Installing : mysql-community-server-5.7.22-1.el7.x86_64                                                 4/6  
+     Installing : mysql-community-libs-compat-5.7.22-1.el7.x86_64                                            5/6  
+     Erasing    : 1:mariadb-libs-5.5.56-2.el7.x86_64                                                         6/6  
+     Verifying  : mysql-community-libs-compat-5.7.22-1.el7.x86_64                                            1/6  
+     Verifying  : mysql-community-common-5.7.22-1.el7.x86_64                                                 2/6  
+     Verifying  : mysql-community-server-5.7.22-1.el7.x86_64                                                 3/6  
+     Verifying  : mysql-community-client-5.7.22-1.el7.x86_64                                                 4/6  
+     Verifying  : mysql-community-libs-5.7.22-1.el7.x86_64                                                   5/6  
+     Verifying  : 1:mariadb-libs-5.5.56-2.el7.x86_64                                                         6/6  
+     
+   Installed:  
+     mysql-community-libs.x86_64 0:5.7.22-1.el7          mysql-community-libs-compat.x86_64 0:5.7.22-1.el7  
+     mysql-community-server.x86_64 0:5.7.22-1.el7  
+     
+   Dependency Installed:  
+     mysql-community-client.x86_64 0:5.7.22-1.el7          mysql-community-common.x86_64 0:5.7.22-1.el7  
+     
+   Replaced:  
+     mariadb-libs.x86_64 1:5.5.56-2.el7  
+     
+   Complete!  
+   ```
+
+3. 启动 MySQL 
+
+   ```shell
+   [root@VM_61_120_centos local]# service mysqld start  
+   Redirecting to /bin/systemctl start mysqld.service
+   ```
+
+   查看状态
+
+   ```shell
+   [root@VM_61_120_centos local]# service mysqld status  
+   Redirecting to /bin/systemctl status mysqld.service  
+   ● mysqld.service - MySQL Server  
+      Loaded: loaded (/usr/lib/systemd/system/mysqld.service; enabled; vendor preset: disabled)  
+      Active: active (running) since Fri 2018-05-25 14:55:40 CST; 24s ago  
+        Docs: man:mysqld(8)  
+              http://dev.mysql.com/doc/refman/en/using-systemd.html  
+     Process: 32347 ExecStart=/usr/sbin/mysqld --daemonize --pid-file=/var/run/mysqld/mysqld.pid $MYSQLD_OPTS (code=exited, status=0/SUCCESS)  
+     Process: 32260 ExecStartPre=/usr/bin/mysqld_pre_systemd (code=exited, status=0/SUCCESS)  
+    Main PID: 32351 (mysqld)  
+      CGroup: /system.slice/mysqld.service  
+              └─32351 /usr/sbin/mysqld --daemonize --pid-file=/var/run/mysqld/mysqld.pid  
+     
+   May 25 14:55:26 VM_61_120_centos systemd[1]: Starting MySQL Server...  
+   May 25 14:55:40 VM_61_120_centos systemd[1]: Started MySQL Server.  
+   ```
+
+4. 设置 mysqld 服务开机自启动 
+
+   ```shell
+   systemctl enable mysqld
+   ```
+
+5. 使用初始密码登录，并修改密码 
+
+   从MySQL5.7开始不允许首次安装后使用空密码进行登录，系统会随机生成一个密码以供管理员首次登录使用，使用下面的命令查看此密码： 
+
+   ```shell
+   [root@VM_61_120_centos local]# cat /var/log/mysqld.log | grep 'A temporary password'  
+   2018-05-25T06:55:29.033154Z 1 [Note] A temporary password is generated for root@localhost: zQpf,eGqh6l= 
+   ```
+
+   修改密码时，必须是强密码，要求包含大小写字母、数字及特殊字符，长度在6位以上：
+
+   ```shell
+   [root@VM_61_120_centos local]# mysql -uroot -p'zQpf,eGqh6l='  
+   mysql: [Warning] Using a password on the command line interface can be insecure.  
+   Welcome to the MySQL monitor.  Commands end with ; or \g.  
+   Your MySQL connection id is 8  
+   Server version: 5.7.22  
+     
+   Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.  
+     
+   Oracle is a registered trademark of Oracle Corporation and/or its  
+   affiliates. Other names may be trademarks of their respective  
+   owners.  
+     
+   Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.  
+     
+   mysql> show databases;  
+   ERROR 1820 (HY000): You must reset your password using ALTER USER statement before executing this statement.  
+   mysql> ALTER user 'root'@'localhost' identified by 'Bugaosuni01';  
+   ERROR 1819 (HY000): Your password does not satisfy the current policy requirements  
+   mysql> ALTER user 'root'@'localhost' identified by 'Bugaosuni_01';  
+   Query OK, 0 rows affected (0.00 sec)  
+     
+   mysql> show databases;  
+   +--------------------+  
+   | Database           |  
+   +--------------------+  
+   | information_schema |  
+   | mysql              |  
+   | performance_schema |  
+   | sys                |  
+   +--------------------+  
+   4 rows in set (0.00 sec)  
+   ```
+
+6. 设置 utf-8 编码和大小写敏感配置
+
+   ```mysql
+   -- 查看mysql当前编码
+   show variables like 'character%';
+   -- 查看当前mysql的大小写敏感配置
+   show global variables like '%lower_case%';
+   ```
+
+   修改 /etc/my.cnf，增加：
+
+   ```
+   [mysqld]
+   character-set-server = utf8
+   collation-server = utf8_general_ci
+   lower_case_table_names = 1  # 大小写不敏感
+   
+   [mysql]
+   default-character-set = utf8
+   
+   [mysql.server]
+   default-character-set = utf8
+   
+   [mysqld_safe]
+   default-character-set = utf8
+   
+   [client]
+   default-character-set = utf8
+   ```
+
+   重启 mysql：
+
+   ```shell
+   service mysqld restart
+   ```
+
+8. 开启创建函数的功能
+
+   ```mysql
+   -- 查看是否开启创建函数的功能
+   show variables like '%func%';
+   -- 开启创建函数的功能
+   set global log_bin_trust_function_creators = 1;
+   -- 创建函数
+   DROP FUNCTION IF EXISTS `方法名`;
+   DELIMITER ;;
+   CREATE DEFINER=`用户`@`%` FUNCTION `方法名`(`入参` VARCHAR(50)) RETURNS varchar(20) CHARSET utf8
+   BEGIN
+    xxxxxxxxxx
+   END
+   ;;
+   DELIMITER ;
+   -- 查看函数
+   show function status;
+   ```
+
+9. 创建数据库和用户
+
+   ```mysql
+   -- 创建数据库
+   create schema [数据库名称] default character set utf8 collate utf8_general_ci;
+   
+   -- 创建用户（%：匹配所有主机，该地方还可以设置成'localhost'，代表只能本地访问，例如root账户默认为'localhost'）
+   create user '[用户名称]'@'%' identified by '[用户密码]';
+   
+   -- 用户授权数据库
+   grant all on [数据库名称].* to [用户名称];
+   
+   -- 立即启用修改
+   flush privileges;
+   ```
+
+10. 远程连接
+
+   ```shell
+   # 赋予全部权限在所有数据库和所有表上给root用户在任何主机上使用Bugaosuni_01这个密码登录  
+   mysql> GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '密码' WITH GRANT OPTION;  
+   Query OK, 0 rows affected, 1 warning (0.00 sec)  
+   # 立即启用修改
+   mysql> FLUSH PRIVILEGES;  
+   Query OK, 0 rows affected (0.00 sec)  
+   ```
 
 
-
+​    
 
 ### Linux（Ubuntu）
 
