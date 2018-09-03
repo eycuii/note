@@ -18,7 +18,7 @@ https://github.com/Netflix/Hystrix/wiki
 
 hystrix 版本：1.5.12
 
-​    
+    
 
 ## 例子
 
@@ -139,9 +139,7 @@ Observable<K> ocValue = command.toObservable();    // cold observable
 
 **4、检查其断路器状态**
 
-如果是开路状态，则直接快速失败，进行降级处理。
-
-各 Command 的熔断器可通过 commandKey 来区分，相同的 commandKey 使用同一个熔断器。commandKey 默认值为类名，如果用的是注解形式，则默认值为方法名。可以在构建 HystrixCommand / HystrixObservableCommand 时通过 Setter 对象的 andCommandKey() 方法设置。
+如果当前断路器是开路状态，则直接快速失败，进行降级处理。
 
 **5、判断线程池 / 队列 / 信号量是否已满**
 
@@ -157,7 +155,7 @@ Observable<K> ocValue = command.toObservable();    // cold observable
 
 **7、计算断路器各状态值**
 
-将请求成功，失败，被拒绝或超时信息报告给熔断器。熔断器维护一些用于统计数据用的计数器。
+将请求成功，失败，被拒绝或超时信息报告给断路器。熔断器维护一些用于统计数据用的计数器。
 
 **8、执行失败降级**
 
@@ -179,9 +177,11 @@ Observable<K> ocValue = command.toObservable();    // cold observable
 - observe()：产生 `Observable` 对象后，进行订阅，然后返回该 `Observable` 对象。当再调用其 `subscribe` 方法时，会重放产生的响应信息给订阅者。
 - toObservable()：返回 `Observable` 对象。必须调用其 `subscribe` 方法，才能执行命令。
 
-    
+​    
 
 ## 断路器 Circuit Breaker
+
+各 Command 的断路器可通过 commandKey 来区分，相同的 commandKey 使用同一个断路器。commandKey 默认值为类名，如果用的是注解形式，则默认值为方法名。可以在构建 HystrixCommand / HystrixObservableCommand 时通过 Setter 对象的 andCommandKey() 方法设置。
 
 流程图：
 
@@ -195,7 +195,7 @@ Observable<K> ocValue = command.toObservable();    // cold observable
 
 一定时间（`HystrixCommandProperties.circuitBreakerSleepWindowInMilliseconds()`）后，会变成半开路状态（HALF-OPEN），并重新尝试请求。如果请求失败，会返回到 OPEN 状态；反之则进入 CLOSED 状态。
 
-    
+​     
 
 ## 隔离策略 ExecutionIsolationStrategy
 
@@ -209,8 +209,6 @@ Observable<K> ocValue = command.toObservable();    // cold observable
 
 请求线程和执行依赖的服务的线程不是同一个线程。
 
-允许超时。
-
 **缺点：**增加开销（排队、调度、上下文切换等）。
 
 ### 信号量隔离
@@ -219,7 +217,7 @@ Observable<K> ocValue = command.toObservable();    // cold observable
 
 业务请求线程和执行依赖服务的线程是同一个线程。
 
-**缺点：**不支持异步；无法配置断路，即每次都会尝试获取信号量；一旦达到阈值，就会开始拒绝，但线程还是不能离开，所以不允许超时执行。
+**缺点：**不支持异步
 
 **注：**HystrixObservableCommand 默认使用信号量隔离。
 
